@@ -49,7 +49,6 @@ def demographics(location: str) -> dict:
     Input Parameter Location:str
     Output Parameter:dict
     """
-    print("###############demographics!!!!!###########")
     return {"demographics": "250000000 Persons", "location": location}
 
 @tool
@@ -59,7 +58,6 @@ def get_weather(location: str) -> dict:
     Input Parameter Location:str
     Output Parameter:dict
     """
-    print("#######Entry Get Weather!!!!!#########")
     return {"temperature": "23°C", "location": location}
 
 @tool
@@ -70,7 +68,6 @@ def add(a: int, b: int) -> int:
         a: First integer
         b: Second integer
     """
-    print("######## Add Function #######")
     return a + b
 
 @tool
@@ -81,7 +78,6 @@ def multiply(a: int, b: int) -> int:
         a: First integer
         b: Second integer
     """
-    print("######## Multiply Function #######")
     return a * b
 
 def create_llm(model="llama3.2", temperature=0, verbose=True, **kwargs):

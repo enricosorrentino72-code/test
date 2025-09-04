@@ -3,10 +3,10 @@ import base64
 import json
 
 # Carica l'immagine e codificala in base64
-with open("C:\\Users\\Enrico Sorrentino\\OneDrive - WBA\\Desktop\\buttami\\Buttami\\Test\\imange\\Rifiuti_camion_abusivo.png", "rb") as image_file:
+with open("sample_image.png", "rb") as image_file:
     encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
 
-print("Imange loaded!!")
+print("Image loaded!")
 generic_prompt="Analyze the image and provide a detailed description of what is visible, including the environment, possible location, people, animals, and objects. Describe the relationships or interactions between the elements, the mood or emotions conveyed, and any relevant contextual clues that might help understand the scene."
 plant_prompt="Assess the physiological condition of the plant in the image. Look for symptoms of chlorosis, wilting, necrosis, fungal or insect damage. Include observations on hydration, sunlight exposure, and plant vigor. Provide possible diagnoses and remediation steps."
 abusive_prompt="""
@@ -45,12 +45,7 @@ data = {
     "images": [encoded_image],
      "stream": True
 }
-print("Data loaded!!")
-
-# Invia la richiesta al server Ollama (in esecuzione in locale)
-response = requests.post("http://localhost:11434/api/generate", json=data,stream=True)
-
-print("Response Done!!")
+response = requests.post("http://localhost:11434/api/generate", json=data, stream=True)
 
 # Visualizza la risposta
 output = ""

@@ -13,10 +13,10 @@ def test_mcp_imports():
     try:
         import mcp_server
         print("✅ MCP server imports successfully")
-        return True
+        assert True
     except ImportError as e:
         print(f"❌ MCP server import failed: {e}")
-        return False
+        assert False, f"MCP server import failed: {e}"
 
 def test_function_availability():
     """Test that all expected functions are available."""
@@ -26,10 +26,10 @@ def test_function_availability():
             multiply_numbers, download_ml_model
         )
         print("✅ All MCP tool functions are available")
-        return True
+        assert True
     except ImportError as e:
         print(f"❌ Function import failed: {e}")
-        return False
+        assert False, f"Function import failed: {e}"
 
 def test_function_execution():
     """Test that MCP tool functions execute correctly."""
@@ -55,10 +55,10 @@ def test_function_execution():
         assert multiply_numbers(4, 3) == 12
         print("✅ Math functions work")
         
-        return True
+        assert True
     except Exception as e:
         print(f"❌ Function execution failed: {e}")
-        return False
+        assert False, f"Function execution failed: {e}"
 
 if __name__ == "__main__":
     print("🔍 Testing MCP Server Functionality")

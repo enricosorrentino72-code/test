@@ -1,0 +1,23 @@
+# Testing Dependencies
+# Core testing framework
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+pytest-xdist>=3.3.0
+pytest-sugar>=0.9.7
+pytest-timeout>=2.1.0
+pytest-benchmark>=4.0.0
+
+# Coverage reporting
+coverage>=7.3.0
+
+# Test data and utilities
+faker>=19.6.0
+deepdiff>=6.5.0
+
+# Performance testing
+memory-profiler>=0.61.0
+psutil>=5.9.0
+
+# Install test dependencies:
+# pip install -r requirements-test.txt

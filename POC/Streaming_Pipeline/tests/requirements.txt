@@ -1,0 +1,58 @@
+# Test dependencies for Databricks Streaming Pipeline Tests
+
+# Core testing framework
+pytest>=7.0.0
+pytest-cov>=4.0.0
+pytest-mock>=3.10.0
+pytest-xdist>=3.0.0
+pytest-html>=3.1.0
+pytest-json-report>=1.5.0
+
+# Coverage reporting
+coverage>=7.0.0
+
+# Mock and testing utilities
+unittest-xml-reporting>=3.2.0
+mock>=4.0.3
+responses>=0.23.0
+
+# Performance testing
+pytest-benchmark>=4.0.0
+pytest-timeout>=2.1.0
+
+# Data validation and testing
+deepdiff>=6.0.0
+jsonschema>=4.17.0
+
+# Azure SDK for testing Azure components (mocked)
+azure-eventhub>=5.11.0
+azure-identity>=1.12.0
+azure-storage-blob>=12.14.0
+azure-core>=1.26.0
+
+# Development and linting (optional for test environment)
+black>=23.0.0
+flake8>=6.0.0
+ruff>=0.0.254
+
+# Documentation generation from tests
+pytest-doctestplus>=0.12.0
+
+# Parallel test execution
+pytest-parallel>=0.1.1
+
+# Test result formatting
+pytest-clarity>=1.0.1
+pytest-sugar>=0.9.6
+
+# Environment and configuration
+python-dotenv>=1.0.0
+pyyaml>=6.0
+
+# Memory profiling for performance tests
+memory-profiler>=0.60.0
+psutil>=5.9.0
+
+# Additional utilities
+faker>=18.0.0  # For generating test data
+freezegun>=1.2.0  # For mocking datetime in tests

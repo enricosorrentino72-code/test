@@ -5,4 +5,4 @@ CLIENT = InferenceHTTPClient(
     api_key="API_KEY"
 )
 
-result = CLIENT.infer(your_image.jpg, model_id="plantdoc_yolo/1")
+result = CLIENT.infer("sample_image.jpg", model_id="plantdoc_yolo/1")

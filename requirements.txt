@@ -1,0 +1,8 @@
+langchain-ollama
+langchain-core
+langchain
+langgraph
+pydantic
+mcp
+pytest
+pytest-cov

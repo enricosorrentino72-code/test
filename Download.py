@@ -2,6 +2,7 @@ import os
 import requests
 
 def download_model(url, output_path, min_size_mb=1):
+    """Download a model file from a URL with size validation."""
     try:
         print(f"📥 Downloading from: {url}")
         response = requests.get(url, stream=True)

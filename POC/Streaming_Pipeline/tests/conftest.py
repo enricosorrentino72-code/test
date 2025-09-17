@@ -59,9 +59,24 @@ MOCK_MODULES = {
     'azure.core.exceptions': MagicMock()
 }
 
-# Add mocked modules to sys.modules
+# Add mocked modules to sys.modules (conditionally skip Azure for cloud tests)
+def is_cloud_test_session():
+    """Check if we're running cloud tests based on command line arguments."""
+    import sys
+    # Check if any cloud test files are being run
+    for arg in sys.argv:
+        if 'cloud_test' in arg:
+            return True
+    return False
+
+# Only mock Azure packages if we're not running cloud tests
+cloud_test_session = is_cloud_test_session()
+
 for module_name, mock_module in MOCK_MODULES.items():
     if module_name not in sys.modules:
+        # Skip Azure mocks if running cloud tests
+        if cloud_test_session and module_name.startswith('azure'):
+            continue
         sys.modules[module_name] = mock_module
 
 # =============================================================================
@@ -81,6 +96,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "eventhub: Tests requiring EventHub connectivity")
     config.addinivalue_line("markers", "dqx: Tests for DQX quality framework")
     config.addinivalue_line("markers", "slow: Tests that take a long time to run")
+    config.addinivalue_line("markers", "cloud: Cloud integration tests (real Azure services)")
 
 def pytest_collection_modifyitems(config, items):
     """Modify test collection to add markers based on test names"""

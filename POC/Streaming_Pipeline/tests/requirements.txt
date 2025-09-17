@@ -24,11 +24,14 @@ pytest-timeout>=2.1.0
 deepdiff>=6.0.0
 jsonschema>=4.17.0
 
-# Azure SDK for testing Azure components (mocked)
-azure-eventhub>=5.11.0
-azure-identity>=1.12.0
-azure-storage-blob>=12.14.0
-azure-core>=1.26.0
+# Azure SDK for cloud integration testing
+# Note: These packages are conditionally mocked based on test type
+# - Cloud tests (cloud_test_*.py): Use real Azure SDK packages
+# - Unit/Integration tests (simple_test_*.py): Use mocked versions via conftest.py
+azure-eventhub>=5.11.0              # EventHub producer/consumer for cloud tests
+azure-identity>=1.12.0              # Azure authentication and credentials  
+azure-storage-blob>=12.14.0         # Azure Blob Storage operations
+azure-core>=1.26.0                  # Core Azure SDK functionality
 
 # Development and linting (optional for test environment)
 black>=23.0.0

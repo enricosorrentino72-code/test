@@ -121,8 +121,11 @@ pytest simple_test_eventhub_producer.py simple_test_eventhub_listener.py simple_
 
 # Run specific working test files
 pytest simple_test_eventhub_producer.py -v    # 12 tests (5 unit + 3 integration + 4 performance)
-pytest simple_test_eventhub_listener.py -v    # 29 tests (22 unit + 4 integration + 3 performance)
-pytest simple_test_bronze_to_silver_dqx.py -v # 26 tests (17 unit + 5 integration + 4 performance)
+pytest simple_test_eventhub_listener.py -v    # 25 tests (22 unit + 4 integration + 3 performance)
+pytest simple_test_bronze_to_silver_dqx.py -v # 30 tests (17 unit + 5 integration + 4 performance)
+
+# Run cloud integration tests (requires Azure resources and .env.test)
+pytest cloud_test_eventhub_integration.py -v  # 7 EventHub cloud integration tests
 ```
 
 ### **Run Tests with Coverage**
@@ -180,7 +183,58 @@ pytest simple_test_bronze_to_silver_dqx.py -m "performance" # 4 performance test
 
 # DQX framework tests
 pytest simple_test_bronze_to_silver_dqx.py -m "dqx"
+
+# Cloud integration tests (requires real Azure resources)
+pytest cloud_test_eventhub_integration.py -m "cloud and eventhub"  # EventHub cloud tests
+pytest cloud_test_eventhub_integration.py -m "critical"            # Critical cloud tests only
+pytest cloud_test_eventhub_integration.py -m "performance"         # Cloud performance tests
 ```
+
+### **Cloud Integration Test Setup**
+```bash
+# 1. Copy environment template
+cp .env.test.template .env.test
+
+# 2. Edit .env.test with your Azure credentials
+# TEST_EVENTHUB_CONNECTION_STRING=Endpoint=sb://...
+# TEST_EVENTHUB_NAME=your-eventhub-name
+
+# 3. Run cloud tests (will skip if credentials not configured)
+pytest cloud_test_eventhub_integration.py -v
+```
+
+### **Cloud Test Execution with Detailed Logging**
+```bash
+# Basic cloud test execution with markers
+pytest cloud_test_eventhub_integration.py -v -m "cloud and eventhub"
+
+# With detailed step-by-step logging (recommended for debugging)
+pytest cloud_test_eventhub_integration.py -v -s --capture=no -m "cloud and eventhub"
+
+# With maximum debug detail (Azure SDK logs)
+pytest cloud_test_eventhub_integration.py -v -s --capture=no --tb=long --log-cli-level=DEBUG -m "cloud and eventhub"
+
+# Single test function with full debugging
+pytest cloud_test_eventhub_integration.py::TestEventHubCloudIntegration::test_eventhub_producer_cloud_connectivity -v -s --capture=no
+
+# With performance timing
+pytest cloud_test_eventhub_integration.py -v -s --capture=no --durations=10 -m "cloud and eventhub"
+
+# Clean readable output
+pytest cloud_test_eventhub_integration.py -v -s --tb=short -m "cloud and eventhub"
+```
+
+### **Logging Parameters Explained**
+| Parameter | Purpose |
+|-----------|---------|
+| `-v` | Verbose output (shows test names) |
+| `-s` | Don't capture output (shows print statements and logs) |
+| `--capture=no` | Real-time output (no buffering) |
+| `--tb=long` | Full traceback on failures |
+| `--tb=short` | Concise traceback |
+| `--log-cli-level=DEBUG` | Show Azure SDK debug logs |
+| `--durations=10` | Show slowest 10 tests |
+| `-m "cloud and eventhub"` | Run only cloud EventHub tests |
 
 ### **Parallel Test Execution**
 ```bash
@@ -214,6 +268,17 @@ pytest -n 4     # Use 4 cores
 - Memory usage monitoring with limits (e.g., <120MB increase)
 - Performance regression detection with realistic test data
 
+### **Cloud Integration Tests** (`@pytest.mark.cloud`)
+- **7 comprehensive cloud integration tests** using real Azure EventHub services
+- **Real Azure Service Testing**: Actual connectivity, authentication, and data flow validation
+- **Performance Benchmarking**: Real throughput measurement against Azure services (>10 messages/second)
+- **End-to-End Validation**: Complete producer→consumer→verify workflows with real Azure EventHub
+- **Error Scenario Testing**: Network failures, authentication issues, service limits
+- **Prerequisites**: Azure EventHub resource, `.env.test` configuration, Azure SDK dependencies
+- **Execution**: Slower than mocked tests, requires network connectivity and valid Azure credentials
+- **Smart Skipping**: Gracefully skips when Azure credentials not available
+- **Usage**: `pytest cloud_test_eventhub_integration.py -v -m "cloud and eventhub"`
+
 ### **Critical/High/Medium/Low Priority** (`@pytest.mark.critical`, etc.)
 - Categorized by business importance
 - Different coverage targets
@@ -221,18 +286,58 @@ pytest -n 4     # Use 4 cores
 
 ## 🛠️ Mock Strategy
 
-### **Mocked Components:**
+### **Smart Conditional Mocking System:**
+
+The test suite uses **intelligent conditional mocking** that automatically adapts based on the test type being executed:
+
+#### **Cloud Tests** (real Azure services):
+- **Detection**: Automatically detects cloud test execution via command line arguments containing `cloud_test`
+- **Azure Packages**: Uses **REAL** Azure SDK packages (`azure.eventhub`, `azure.identity`)
+- **Other Dependencies**: Still mocks PySpark, Databricks, and DQX framework for performance
+- **Usage**: `pytest cloud_test_eventhub_integration.py -v`
+
+#### **Unit/Integration Tests** (mocked environment):
+- **Azure Packages**: **MOCKED** to enable fast execution without Azure dependencies
+- **All Dependencies**: Mocks Databricks, PySpark, DQX, and Azure services
+- **Usage**: `pytest simple_test_*.py -v`
+
+### **Mocked Components (Non-Cloud Tests):**
 - **Databricks Environment**: `spark`, `dbutils`, `displayHTML`
 - **PySpark**: All DataFrame and streaming operations
 - **DQX Framework**: `DQEngine`, `DQRowRule`, quality checks
-- **Azure EventHub**: Connection, producer, consumer
-- **Azure Storage**: ADLS Gen2 operations
+- **Azure Services**: EventHub, ADLS Gen2, Identity (when not running cloud tests)
 - **External Dependencies**: All third-party libraries
+
+### **Real Components (Cloud Tests):**
+- **Azure EventHub**: Real producer/consumer operations with live EventHub
+- **Azure Identity**: Real credential management and authentication
+- **Network Operations**: Actual network calls to Azure services
+
+### **Implementation Details:**
+The conditional mocking is implemented in `conftest.py`:
+```python
+def is_cloud_test_session():
+    """Detect cloud test execution from command line arguments."""
+    import sys
+    for arg in sys.argv:
+        if 'cloud_test' in arg:
+            return True
+    return False
+
+# Skip Azure mocks when running cloud tests
+cloud_test_session = is_cloud_test_session()
+for module_name, mock_module in MOCK_MODULES.items():
+    if module_name not in sys.modules:
+        if cloud_test_session and module_name.startswith('azure'):
+            continue  # Don't mock Azure packages for cloud tests
+        sys.modules[module_name] = mock_module
+```
 
 ### **Realistic Mocking:**
 - Maintains function signatures and return types
 - Simulates success/failure scenarios
 - Performance characteristics preserved
+- Backward compatibility with all existing tests
 
 ## 📊 Coverage Reporting
 ```bash

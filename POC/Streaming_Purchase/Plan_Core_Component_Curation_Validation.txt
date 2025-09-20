@@ -1,0 +1,193 @@
+================================================================================
+FINAL PLAN - Purchase Order Item Pipeline with Exact Widget Configuration
+================================================================================
+
+🏗️ COMPLETE ARCHITECTURE:
+================================================================================
+Purchase Order Data Generation → EventHub Producer → Azure EventHub (purchase-order-items)
+    ↓
+EventHub Listener → Bronze Layer (ADLS Gen2 + Hive Metastore)
+    ↓
+Bronze to Silver DQX Pipeline → Silver Layer (with DQX Quality Validation)
+    ↓
+Analytics Ready Data
+
+
+🎯 CORE COMPONENT 3: PurchaseOrderItem_Bronze_to_Silver_DQX.py
+================================================================================
+
+EXACT WIDGET CONFIGURATION (Following Bronze_to_Silver_DQX_Enhanced_Pipeline.py):
+--------------------------------------------------------------------------------
+# Configuration widgets (EXACT same pattern as reference)
+dbutils.widgets.text("eventhub_scope", "rxr-idi-adb-secret-scope", "Secret Scope Name")
+dbutils.widgets.text("storage_account", "idisitcusadls2", "Storage Account Name")
+dbutils.widgets.text("container", "purchase-order-test", "ADLS Container Name")
+
+
+
+# Source configuration - Bronze layer
+dbutils.widgets.text("bronze_database", "bronze", "Bronze Database Name")
+dbutils.widgets.text("bronze_table", "purchase_order_items_raw", "Bronze Table Name")
+
+# Target configuration - Enhanced Silver layer with DQX
+dbutils.widgets.text("silver_database", "silver", "Silver Database Name")
+dbutils.widgets.text("silver_table", "purchase_order_items_dqx", "Silver Table Name")
+
+# Pipeline paths (EXACT same pattern as reference)
+dbutils.widgets.text("silver_path", "/mnt/silver/purchase_orders", "Silver Layer Path")
+dbutils.widgets.text("checkpoint_path", "/mnt/checkpoints/purchase-order-dqx", "DQX Pipeline Checkpoint Path")
+
+# DQX Quality configuration (EXACT same pattern as reference)
+dbutils.widgets.dropdown("quality_criticality", "error", ["error", "warn"], "DQX Quality Criticality Level")
+dbutils.widgets.text("quality_threshold", "0.95", "Quality Pass Threshold (0-1)")
+
+# Streaming configuration (EXACT same pattern as reference)
+dbutils.widgets.dropdown("trigger_mode", "5 seconds", ["1 second", "5 seconds", "10 seconds", "1 minute"], "Trigger Interval")
+dbutils.widgets.text("max_events_per_trigger", "10000", "Max Events Per Trigger")
+
+DQX FRAMEWORK INITIALIZATION (Following exact pattern):
+--------------------------------------------------------------------------------
+try:
+    from databricks.labs.dqx.engine import DQEngine
+    from databricks.labs.dqx.rule import DQRowRule, DQDatasetRule, DQForEachColRule
+    from databricks.labs.dqx import check_funcs
+    from databricks.sdk import WorkspaceClient
+
+    ws = WorkspaceClient()
+    dq_engine = DQEngine(ws) if ws else DQEngine()
+    DQX_AVAILABLE = True
+
+except ImportError:
+    # Auto-installation pattern
+    subprocess.run([sys.executable, "-m", "pip", "install", "databricks-labs-dqx"])
+    # Re-import and initialize
+    DQX_AVAILABLE = True
+
+CLASS BEHAVIOR:
+--------------------------------------------------------------------------------
+- PurchaseOrderItemDQXPipeline: Bronze to Silver with DQX validation
+- DQX Framework: Proper Databricks DQX library integration
+- Financial Rules: Purchase order specific validation (total_amount calculation, etc.)
+- Single Table: All records with quality flags (flag_check: PASS/FAIL)
+- Enhanced Schema: All Bronze fields + DQX quality metadata
+
+The Notebook Structure should be organized by class using the import, please Can you describe how to organize the Notebook ?
+
+📊 PURCHASE ORDER SPECIFIC DQX RULES:
+================================================================================
+
+CRITICAL RULES (error level):
+--------------------------------------------------------------------------------
+1. Financial Accuracy:
+   DQRowRule(
+       name="total_amount_calculation_valid",
+       criticality="error",
+       check_func=check_funcs.sql_expression,
+       column="total_amount",
+       check_func_kwargs={
+           "expression": "abs(total_amount - (quantity * unit_price)) <= 0.01",
+           "msg": "Total amount must equal quantity * unit_price"
+       }
+   )
+
+2. Positive Values:
+   - quantity > 0
+   - unit_price > 0
+
+3. Required Fields:
+   - order_id not null/empty
+   - product_id not null/empty
+   - customer_id not null/empty
+
+HIGH RULES (warn level):
+--------------------------------------------------------------------------------
+4. Status Validation:
+   - Valid order_status values (NEW, PROCESSING, SHIPPED, DELIVERED, CANCELLED)
+   - Valid payment_status values (PENDING, PAID, REFUNDED, FAILED)
+
+5. Business Logic Consistency:
+   - Payment status should align with order status
+   - When order_status = DELIVERED, payment_status should be PAID
+
+MEDIUM RULES (warn level):
+--------------------------------------------------------------------------------
+6. Format Validation:
+   - Order ID format: ORD-XXXXXX pattern
+   - Product ID format: PRD### pattern
+
+7. Range Validation:
+   - Reasonable quantity limits (<=1000)
+   - Reasonable price limits (<=50000)
+
+ENHANCED SILVER SCHEMA WITH DQX METADATA:
+--------------------------------------------------------------------------------
+- Core Purchase Order Business Data (all fields from data model)
+- Inherited Technical Fields (from Bronze)
+- EventHub Technical Fields
+- Silver Processing Metadata
+- DQX Quality Metadata Fields:
+  * flag_check (PASS/FAIL/WARNING)
+  * description_failure
+  * dqx_rule_results
+  * dqx_quality_score (0.0-1.0)
+  * dqx_validation_timestamp
+  * dqx_lineage_id
+  * dqx_criticality_level
+  * failed_rules_count
+  * passed_rules_count
+
+⚙️ CONFIGURATION FILES:
+================================================================================
+
+.env.example (Same Infrastructure, Different Resources):
+--------------------------------------------------------------------------------
+# Azure EventHub Configuration (Same Infrastructure)
+EVENTHUB_CONNECTION_STRING="Endpoint=sb://your-namespace.servicebus.windows.net/;SharedAccessKeyName=your-policy;SharedAccessKey=your-key"
+
+# Purchase Order Specific Settings
+PURCHASE_ORDER_EVENTHUB_NAME="purchase-order-items"
+PURCHASE_ORDER_CONSUMER_GROUP="$Default"
+
+# Azure Storage Configuration (Same Account, Different Containers)
+STORAGE_ACCOUNT_NAME="idisitcusadls2"
+PURCHASE_ORDER_BRONZE_CONTAINER="purchase-order-test"
+PURCHASE_ORDER_SILVER_CONTAINER="purchase-order-test"
+
+# Databricks Configuration (Same Workspace)
+DATABRICKS_HOST="your-databricks-host"
+DATABRICKS_TOKEN="your-access-token"
+DATABRICKS_CLUSTER_ID="your-cluster-id"
+
+# Pipeline Configuration
+PURCHASE_ORDER_BATCH_SIZE="50"
+PURCHASE_ORDER_TRIGGER_INTERVAL="5 seconds"
+PURCHASE_ORDER_CHECKPOINT_LOCATION="/mnt/checkpoints/purchase-order-dqx/"
+
+requirements.txt:
+--------------------------------------------------------------------------------
+# Azure Dependencies
+azure-eventhub>=5.11.0
+azure-core>=1.28.0
+azure-identity>=1.14.0
+azure-storage-blob>=12.17.0
+
+# Data Processing
+pyspark>=3.4.0
+delta-spark>=2.4.0
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Data Validation
+pydantic>=2.0.0
+jsonschema>=4.19.0
+
+# DQX Framework
+databricks-labs-dqx
+
+# Utilities
+python-dotenv>=1.0.0
+backoff>=2.2.1
+structlog>=23.1.0
+
+Plesase Follow this plan only PurchaseOrderItem_Bronze_to_Silver_DQX.py  save the class generated under the folder POC\Streaming_Purchase and use like a reference the class under the folder POC\Streaming_Pipeline\Bronze_to_Silver_DQX_Enhanced_Pipeline
+The class should be use Python and should be used the Databricks Notebook and the pipeline should be a Strcuterd streaming using the check point on the delta table defined in the pipeline Plan_Core_Component_Listener_Data

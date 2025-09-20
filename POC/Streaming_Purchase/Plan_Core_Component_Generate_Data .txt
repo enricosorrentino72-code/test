@@ -1,0 +1,117 @@
+================================================================================
+FINAL PLAN - Purchase Order Item Pipeline with Exact Widget Configuration
+================================================================================
+
+🏗️ COMPLETE ARCHITECTURE:
+================================================================================
+Purchase Order Data Generation → EventHub Producer → Azure EventHub (purchase-order-items)
+    ↓
+EventHub Listener → Bronze Layer (ADLS Gen2 + Hive Metastore)
+    ↓
+Bronze to Silver DQX Pipeline → Silver Layer (with DQX Quality Validation)
+    ↓
+Analytics Ready Data
+
+
+
+🎯 CORE COMPONENT 1: PurchaseOrderItem_EventHub_Producer.py
+================================================================================
+
+EXACT WIDGET CONFIGURATION (Following EventHub_Producer_Databricks.py):
+--------------------------------------------------------------------------------
+# Create widgets for dynamic configuration (EXACT same pattern as reference)
+dbutils.widgets.text("eventhub_scope", "rxr-idi-adb-secret-scope", "Secret Scope Name")
+dbutils.widgets.text("eventhub_name", "purchase-order-items", "Event Hub Name")
+dbutils.widgets.text("batch_size", "50", "Batch Size")
+dbutils.widgets.text("send_interval", "2.0", "Send Interval (seconds)")
+dbutils.widgets.text("duration_minutes", "60", "Run Duration (minutes)")
+dbutils.widgets.dropdown("log_level", "INFO", ["DEBUG", "INFO", "WARNING", "ERROR"], "Log Level")
+
+# Get widget values
+SECRET_SCOPE = dbutils.widgets.get("eventhub_scope")
+EVENTHUB_NAME = dbutils.widgets.get("eventhub_name")
+BATCH_SIZE = int(dbutils.widgets.get("batch_size"))
+SEND_INTERVAL = float(dbutils.widgets.get("send_interval"))
+DURATION_MINUTES = int(dbutils.widgets.get("duration_minutes"))
+LOG_LEVEL = dbutils.widgets.get("log_level")
+
+CLASS BEHAVIOR:
+--------------------------------------------------------------------------------
+- PurchaseOrderItemProducer: Main producer class with financial data generation
+- Data Generation: Realistic purchase orders with business scenarios
+- Quality Scenarios: 5% data with quality issues for DQX testing
+- Financial Validation: Proper total_amount = quantity * unit_price calculations
+- Business Logic: Order status and payment status consistency
+- Databricks Integration: Cluster ID and notebook path metadata
+
+Notebook Structure Plan
+
+  1. Import Section
+
+  # Import existing classes from our organized structure
+  from class.purchase_order_item_model import PurchaseOrderItem
+  from class.purchase_order_item_factory import PurchaseOrderItemFactory
+  from class.purchase_order_item_producer import PurchaseOrderItemProducer
+  from utility.databricks_utils import DatabricksUtils, DatabricksNotebookHelper
+  from utility.azure_utils import AzureEventHubUtils
+
+  2. Widget Configuration (Exact Pattern)
+
+  dbutils.widgets.text("eventhub_scope", "rxr-idi-adb-secret-scope", "Secret Scope Name")
+  dbutils.widgets.text("eventhub_name", "purchase-order-items", "Event Hub Name")
+  dbutils.widgets.text("batch_size", "50", "Batch Size")
+  dbutils.widgets.text("send_interval", "2.0", "Send Interval (seconds)")
+  dbutils.widgets.text("duration_minutes", "60", "Run Duration (minutes)")
+  dbutils.widgets.dropdown("log_level", "INFO", ["DEBUG", "INFO", "WARNING", "ERROR"], "Log Level")
+
+  3. Class Usage Pattern
+
+  - Initialization: Use PurchaseOrderItemProducer class with widget parameters
+  - Data Generation: Leverage PurchaseOrderItemFactory for realistic data
+  - EventHub Operations: Utilize existing AzureEventHubUtils
+  - Databricks Integration: Use DatabricksNotebookHelper utilities
+
+  4. Key Benefits of Class Organization
+
+  - Code Reusability: Classes can be used in other notebooks
+  - Maintainability: Changes to logic happen in one place
+  - Testing: Classes can be unit tested independently
+  - Modularity: Clear separation of concerns
+  - Databricks Best Practice: Import pattern recommended for production
+
+  5. Notebook Flow
+
+  1. Import all required classes and utilities
+  2. Setup widget configuration and logging
+  3. Initialize producer using imported PurchaseOrderItemProducer class
+  4. Execute production using class methods
+  5. Display results and cleanup using utility functions
+
+
+DATA MODEL:
+--------------------------------------------------------------------------------
+@dataclass
+class PurchaseOrderItem:
+    # Core purchase order fields
+    order_id: str
+    product_id: str
+    product_name: str
+    quantity: int
+    unit_price: float
+    total_amount: float
+
+    # Business context
+    customer_id: str
+    vendor_id: str
+    warehouse_location: str
+    currency: str
+
+    # Status tracking
+    order_status: str  # NEW, PROCESSING, SHIPPED, DELIVERED, CANCELLED
+    payment_status: str  # PENDING, PAID, REFUNDED, FAILED
+
+    # Metadata
+    timestamp: datetime
+    created_at: datetime
+    order_date: str
+    fiscal_quarter: str

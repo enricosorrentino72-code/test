@@ -1,0 +1,181 @@
+================================================================================
+FINAL PLAN - Purchase Order Item Pipeline with Exact Widget Configuration
+================================================================================
+
+🏗️ COMPLETE ARCHITECTURE:
+================================================================================
+Purchase Order Data Generation → EventHub Producer → Azure EventHub (purchase-order-items)
+    ↓
+EventHub Listener → Bronze Layer (ADLS Gen2 + Hive Metastore)
+    ↓
+Bronze to Silver DQX Pipeline → Silver Layer (with DQX Quality Validation)
+    ↓
+Analytics Ready Data
+
+
+🎯 CORE COMPONENT 2: PurchaseOrderItem_EventHub_Listener.py
+================================================================================
+
+EXACT WIDGET CONFIGURATION (Following EventHub_Listener_HiveMetastore_Databricks.py):
+--------------------------------------------------------------------------------
+# EventHub configuration (EXACT same pattern as reference)
+dbutils.widgets.text("eventhub_scope", "rxr-idi-adb-secret-scope", "Secret Scope Name")
+dbutils.widgets.text("eventhub_name", "purchase-order-items", "Event Hub Name")
+dbutils.widgets.text("consumer_group", "$Default", "Consumer Group")
+dbutils.widgets.text("bronze_path", "/mnt/bronze/purchase_orders", "Bronze Layer Path (Local DBFS)")
+dbutils.widgets.text("checkpoint_path", "/mnt/checkpoints/purchase-order-listener", "Checkpoint Path (Local DBFS)")
+dbutils.widgets.text("storage_account", "idisitcusadls2", "Storage Account Name")
+dbutils.widgets.text("container", "purchase-order-test", "ADLS Container Name")
+
+# Hive Metastore table configuration (EXACT same pattern as reference)
+dbutils.widgets.text("database_name", "bronze", "Database Name")
+dbutils.widgets.text("table_name", "purchase_order_items_raw", "Table Name")
+
+# Streaming configuration (EXACT same pattern as reference)
+dbutils.widgets.dropdown("trigger_mode", "5 seconds", ["1 second", "5 seconds", "10 seconds", "1 minute", "continuous"], "Trigger Interval")
+dbutils.widgets.dropdown("log_level", "INFO", ["DEBUG", "INFO", "WARNING", "ERROR"], "Log Level")
+dbutils.widgets.text("max_events_per_trigger", "10000", "Max Events Per Trigger")
+
+CLASS BEHAVIOR:
+--------------------------------------------------------------------------------
+- PurchaseOrderItemListener: EventHub to Bronze layer streaming
+- Bronze Schema: Purchase order specific fields + EventHub metadata
+- Hive Integration: Automatic table creation and registration
+- ADLS Gen2: Same storage patterns as weather pipeline
+- Partitioning: By ingestion_date and ingestion_hour
+
+The Notebook Structure should be organized by class using the import, please Can you describe how to organize the Notebook ?
+
+BRONZE SCHEMA:
+--------------------------------------------------------------------------------
+- record_id (technical metadata)
+- ingestion_timestamp, ingestion_date, ingestion_hour
+- eventhub_partition, eventhub_offset, eventhub_sequence_number, eventhub_enqueued_time
+- processing_cluster_id, consumer_group, eventhub_name
+- raw_payload (JSON string), payload_size_bytes
+
+
+⎿  PurchaseOrderItem_EventHub_Listener Notebook Organization Plan
+
+     🏗️ Class-Based Architecture Organization
+
+     1. Import Section (Cell 1)
+
+     # System imports
+     import sys, os, logging
+     from datetime import datetime
+     from pyspark.sql import SparkSession
+     from pyspark.sql.functions import *
+     from pyspark.sql.types import *
+
+     # Add project path
+     current_path = os.path.dirname(os.path.abspath(__file__))
+     sys.path.insert(0, current_path)
+
+     # Import organized classes
+     from class.purchase_order_item_model import PurchaseOrderItem
+     from class.purchase_order_item_listener import PurchaseOrderItemListener  # TO BE CREATED
+     from utility.databricks_utils import DatabricksUtils, DatabricksNotebookHelper
+     from utility.azure_utils import AzureEventHubUtils, AzureStorageUtils
+
+     2. Widget Configuration (Cell 2)
+
+     # EventHub Configuration - EXACT pattern from EventHub_Listener_HiveMetastore_Databricks.py
+     dbutils.widgets.text("eventhub_scope", "rxr-idi-adb-secret-scope", "Secret Scope Name")
+     dbutils.widgets.text("eventhub_name", "purchase-order-items", "Event Hub Name")
+     dbutils.widgets.text("consumer_group", "$Default", "Consumer Group")
+
+     # Storage Configuration
+     dbutils.widgets.text("bronze_path", "/mnt/bronze/purchase_orders", "Bronze Layer Path")
+     dbutils.widgets.text("checkpoint_path", "/mnt/checkpoints/purchase-order-listener", "Checkpoint Path")
+     dbutils.widgets.text("storage_account", "idisitcusadls2", "Storage Account Name")
+     dbutils.widgets.text("container", "purchase-order-test", "ADLS Container Name")
+
+     # Hive Metastore Configuration
+     dbutils.widgets.text("database_name", "bronze", "Database Name")
+     dbutils.widgets.text("table_name", "purchase_order_items_raw", "Table Name")
+
+     # Streaming Configuration
+     dbutils.widgets.dropdown("trigger_mode", "5 seconds", ["1 second", "5 seconds", "10 seconds", "1 minute"], "Trigger")
+     dbutils.widgets.text("max_events_per_trigger", "10000", "Max Events Per Trigger")
+     dbutils.widgets.dropdown("log_level", "INFO", ["DEBUG", "INFO", "WARNING", "ERROR"], "Log Level")
+
+     3. Configuration & Environment Setup (Cell 3)
+
+     # Get widget values and setup logging using utility classes
+     DatabricksNotebookHelper.setup_logging(dbutils.widgets.get("log_level"))
+     DatabricksNotebookHelper.display_widget_configuration()
+
+     # Environment validation using utility class
+     validation_results = DatabricksNotebookHelper.validate_environment()
+
+     4. Bronze Schema Definition Using Utility Class (Cell 4)
+
+     # Use DatabricksUtils to get bronze schema
+     bronze_schema = DatabricksUtils.get_purchase_order_bronze_schema()
+
+     5. Initialize Listener Class (Cell 5)
+
+     # Initialize PurchaseOrderItemListener with all configuration
+     listener = PurchaseOrderItemListener(
+         connection_string=dbutils.secrets.get(scope=SECRET_SCOPE, key=EVENTHUB_NAME),
+         eventhub_name=EVENTHUB_NAME,
+         consumer_group=CONSUMER_GROUP,
+         bronze_path=BRONZE_PATH,
+         checkpoint_path=CHECKPOINT_PATH,
+         database_name=DATABASE_NAME,
+         table_name=TABLE_NAME
+     )
+
+     6. Database & Table Setup Using Classes (Cell 6)
+
+     # Use DatabricksUtils for database and table creation
+     DatabricksUtils.create_database_if_not_exists(spark, DATABASE_NAME)
+     DatabricksUtils.create_purchase_order_bronze_table(
+         spark, DATABASE_NAME, TABLE_NAME, bronze_storage_path
+     )
+
+     7. Streaming Execution Using Listener Class (Cell 7)
+
+     # Start streaming using listener class method
+     streaming_query = listener.start_bronze_ingestion(
+         trigger_interval=TRIGGER_MODE,
+         max_events_per_trigger=MAX_EVENTS_PER_TRIGGER
+     )
+
+     8. Monitoring & Cleanup Using Classes (Cell 8)
+
+     # Monitor streaming using listener methods
+     listener.monitor_streaming_progress()
+     listener.cleanup_resources()
+
+     🎯 Classes to Create
+
+     PurchaseOrderItemListener Class (New)
+
+     class PurchaseOrderItemListener:
+         def __init__(self, connection_string, eventhub_name, consumer_group, bronze_path, checkpoint_path, database_name,
+     table_name)
+         def start_bronze_ingestion(self, trigger_interval, max_events_per_trigger)
+         def monitor_streaming_progress(self)
+         def cleanup_resources(self)
+         def get_bronze_schema(self)
+         def transform_eventhub_to_bronze(self, df)
+
+     DatabricksUtils Enhancement (Extend existing)
+
+     def get_purchase_order_bronze_schema() -> StructType
+     def create_purchase_order_bronze_table(spark, database_name, table_name, storage_path)
+
+     📁 File Structure After Implementation
+
+     class/
+     ├── purchase_order_item_listener.py  # NEW - Listener class
+     ├── purchase_order_item_model.py     # EXISTS
+     ├── purchase_order_item_factory.py   # EXISTS
+     ├── purchase_order_item_producer.py  # EXISTS
+
+     PurchaseOrderItem_EventHub_Listener.py  # NEW - Class-based notebook
+
+     This organization ensures clean separation between configuration, class initialization, and execution while leveraging all
+     existing utility functions.

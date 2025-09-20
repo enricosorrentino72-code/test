@@ -1,0 +1,479 @@
+================================================================================
+FINAL PLAN - Purchase Order Item Pipeline with Exact Widget Configuration
+================================================================================
+
+🏗️ COMPLETE ARCHITECTURE:
+================================================================================
+Purchase Order Data Generation → EventHub Producer → Azure EventHub (purchase-order-items)
+    ↓
+EventHub Listener → Bronze Layer (ADLS Gen2 + Hive Metastore)
+    ↓
+Bronze to Silver DQX Pipeline → Silver Layer (with DQX Quality Validation)
+    ↓
+Analytics Ready Data
+
+📁 INDEPENDENT DIRECTORY STRUCTURE:
+================================================================================
+Streaming_Purchase_Order_Item/                           # NEW independent directory
+├── .github/
+│   ├── workflows/
+│   │   ├── ci.yml                                       # GitHub Actions CI workflow
+│   │   └── tests.yml                                    # Automated testing workflow
+│   ├── ISSUE_TEMPLATE.md                               # GitHub issue template
+│   └── PULL_REQUEST_TEMPLATE.md                        # GitHub PR template
+├── .claude/
+│   └── settings.local.json                             # Claude Code settings
+├── tests/
+│   ├── simple_test_purchase_order_item_producer.py     # Producer tests
+│   ├── simple_test_purchase_order_item_listener.py     # Listener tests
+│   ├── simple_test_purchase_order_item_dqx.py         # DQX pipeline tests
+│   ├── cloud_test_purchase_order_eventhub.py          # Cloud integration tests
+│   ├── conftest.py                                     # Test fixtures and mocking
+│   ├── pytest.ini                                     # Test configuration
+│   ├── README.md                                       # Testing documentation
+│   ├── TESTING_SOLUTION.md                            # Testing approach guide
+│   └── requirements.txt                               # Test dependencies
+├── PurchaseOrderItem_EventHub_Producer.py             # Core component 1 (Databricks Notebook)
+├── PurchaseOrderItem_EventHub_Listener.py             # Core component 2 (Databricks Notebook)
+├── PurchaseOrderItem_Bronze_to_Silver_DQX.py          # Core component 3 (Databricks Notebook)
+├── README.md                                           # Project overview
+├── CHANGELOG.md                                        # Version history
+├── CONTRIBUTING.md                                     # Contribution guidelines
+├── PurchaseOrderItem_Deployment_Guide.md              # Deployment instructions
+├── LICENSE                                             # MIT License
+├── requirements.txt                                    # Production dependencies
+├── requirements-dev.txt                               # Development dependencies
+├── requirements-test.txt                              # Testing dependencies
+├── pyproject.toml                                     # Python project configuration
+├── .gitignore                                         # Git ignore rules
+└── .env.example                                       # Environment template
+
+🎯 CORE COMPONENT 1: PurchaseOrderItem_EventHub_Producer.py
+================================================================================
+
+EXACT WIDGET CONFIGURATION (Following EventHub_Producer_Databricks.py):
+--------------------------------------------------------------------------------
+# Create widgets for dynamic configuration (EXACT same pattern as reference)
+dbutils.widgets.text("eventhub_scope", "rxr-idi-adb-secret-scope", "Secret Scope Name")
+dbutils.widgets.text("eventhub_name", "purchase-order-items", "Event Hub Name")
+dbutils.widgets.text("batch_size", "50", "Batch Size")
+dbutils.widgets.text("send_interval", "2.0", "Send Interval (seconds)")
+dbutils.widgets.text("duration_minutes", "60", "Run Duration (minutes)")
+dbutils.widgets.dropdown("log_level", "INFO", ["DEBUG", "INFO", "WARNING", "ERROR"], "Log Level")
+
+# Get widget values
+SECRET_SCOPE = dbutils.widgets.get("eventhub_scope")
+EVENTHUB_NAME = dbutils.widgets.get("eventhub_name")
+BATCH_SIZE = int(dbutils.widgets.get("batch_size"))
+SEND_INTERVAL = float(dbutils.widgets.get("send_interval"))
+DURATION_MINUTES = int(dbutils.widgets.get("duration_minutes"))
+LOG_LEVEL = dbutils.widgets.get("log_level")
+
+CLASS BEHAVIOR:
+--------------------------------------------------------------------------------
+- PurchaseOrderItemProducer: Main producer class with financial data generation
+- Data Generation: Realistic purchase orders with business scenarios
+- Quality Scenarios: 5% data with quality issues for DQX testing
+- Financial Validation: Proper total_amount = quantity * unit_price calculations
+- Business Logic: Order status and payment status consistency
+- Databricks Integration: Cluster ID and notebook path metadata
+
+DATA MODEL:
+--------------------------------------------------------------------------------
+@dataclass
+class PurchaseOrderItem:
+    # Core purchase order fields
+    order_id: str
+    product_id: str
+    product_name: str
+    quantity: int
+    unit_price: float
+    total_amount: float
+
+    # Business context
+    customer_id: str
+    vendor_id: str
+    warehouse_location: str
+    currency: str
+
+    # Status tracking
+    order_status: str  # NEW, PROCESSING, SHIPPED, DELIVERED, CANCELLED
+    payment_status: str  # PENDING, PAID, REFUNDED, FAILED
+
+    # Metadata
+    timestamp: datetime
+    created_at: datetime
+    order_date: str
+    fiscal_quarter: str
+
+🎯 CORE COMPONENT 2: PurchaseOrderItem_EventHub_Listener.py
+================================================================================
+
+EXACT WIDGET CONFIGURATION (Following EventHub_Listener_HiveMetastore_Databricks.py):
+--------------------------------------------------------------------------------
+# EventHub configuration (EXACT same pattern as reference)
+dbutils.widgets.text("eventhub_scope", "rxr-idi-adb-secret-scope", "Secret Scope Name")
+dbutils.widgets.text("eventhub_name", "purchase-order-items", "Event Hub Name")
+dbutils.widgets.text("consumer_group", "$Default", "Consumer Group")
+dbutils.widgets.text("bronze_path", "/mnt/bronze/purchase_orders", "Bronze Layer Path (Local DBFS)")
+dbutils.widgets.text("checkpoint_path", "/mnt/checkpoints/purchase-order-listener", "Checkpoint Path (Local DBFS)")
+dbutils.widgets.text("storage_account", "idisitcusadls2", "Storage Account Name")
+dbutils.widgets.text("container", "purchase-order-test", "ADLS Container Name")
+
+# Hive Metastore table configuration (EXACT same pattern as reference)
+dbutils.widgets.text("database_name", "bronze", "Database Name")
+dbutils.widgets.text("table_name", "purchase_order_items_raw", "Table Name")
+
+# Streaming configuration (EXACT same pattern as reference)
+dbutils.widgets.dropdown("trigger_mode", "5 seconds", ["1 second", "5 seconds", "10 seconds", "1 minute", "continuous"], "Trigger Interval")
+dbutils.widgets.dropdown("log_level", "INFO", ["DEBUG", "INFO", "WARNING", "ERROR"], "Log Level")
+dbutils.widgets.text("max_events_per_trigger", "10000", "Max Events Per Trigger")
+
+CLASS BEHAVIOR:
+--------------------------------------------------------------------------------
+- PurchaseOrderItemListener: EventHub to Bronze layer streaming
+- Bronze Schema: Purchase order specific fields + EventHub metadata
+- Hive Integration: Automatic table creation and registration
+- ADLS Gen2: Same storage patterns as weather pipeline
+- Partitioning: By ingestion_date and ingestion_hour
+
+BRONZE SCHEMA:
+--------------------------------------------------------------------------------
+- record_id (technical metadata)
+- ingestion_timestamp, ingestion_date, ingestion_hour
+- eventhub_partition, eventhub_offset, eventhub_sequence_number, eventhub_enqueued_time
+- processing_cluster_id, consumer_group, eventhub_name
+- raw_payload (JSON string), payload_size_bytes
+
+🎯 CORE COMPONENT 3: PurchaseOrderItem_Bronze_to_Silver_DQX.py
+================================================================================
+
+EXACT WIDGET CONFIGURATION (Following Bronze_to_Silver_DQX_Enhanced_Pipeline.py):
+--------------------------------------------------------------------------------
+# Configuration widgets (EXACT same pattern as reference)
+dbutils.widgets.text("eventhub_scope", "rxr-idi-adb-secret-scope", "Secret Scope Name")
+dbutils.widgets.text("storage_account", "idisitcusadls2", "Storage Account Name")
+dbutils.widgets.text("container", "purchase-order-test", "ADLS Container Name")
+
+# Source configuration - Bronze layer
+dbutils.widgets.text("bronze_database", "bronze", "Bronze Database Name")
+dbutils.widgets.text("bronze_table", "purchase_order_items_raw", "Bronze Table Name")
+
+# Target configuration - Enhanced Silver layer with DQX
+dbutils.widgets.text("silver_database", "silver", "Silver Database Name")
+dbutils.widgets.text("silver_table", "purchase_order_items_dqx", "Silver Table Name")
+
+# Pipeline paths (EXACT same pattern as reference)
+dbutils.widgets.text("silver_path", "/mnt/silver/purchase_orders", "Silver Layer Path")
+dbutils.widgets.text("checkpoint_path", "/mnt/checkpoints/purchase-order-dqx", "DQX Pipeline Checkpoint Path")
+
+# DQX Quality configuration (EXACT same pattern as reference)
+dbutils.widgets.dropdown("quality_criticality", "error", ["error", "warn"], "DQX Quality Criticality Level")
+dbutils.widgets.text("quality_threshold", "0.95", "Quality Pass Threshold (0-1)")
+
+# Streaming configuration (EXACT same pattern as reference)
+dbutils.widgets.dropdown("trigger_mode", "5 seconds", ["1 second", "5 seconds", "10 seconds", "1 minute"], "Trigger Interval")
+dbutils.widgets.text("max_events_per_trigger", "10000", "Max Events Per Trigger")
+
+DQX FRAMEWORK INITIALIZATION (Following exact pattern):
+--------------------------------------------------------------------------------
+try:
+    from databricks.labs.dqx.engine import DQEngine
+    from databricks.labs.dqx.rule import DQRowRule, DQDatasetRule, DQForEachColRule
+    from databricks.labs.dqx import check_funcs
+    from databricks.sdk import WorkspaceClient
+
+    ws = WorkspaceClient()
+    dq_engine = DQEngine(ws) if ws else DQEngine()
+    DQX_AVAILABLE = True
+
+except ImportError:
+    # Auto-installation pattern
+    subprocess.run([sys.executable, "-m", "pip", "install", "databricks-labs-dqx"])
+    # Re-import and initialize
+    DQX_AVAILABLE = True
+
+CLASS BEHAVIOR:
+--------------------------------------------------------------------------------
+- PurchaseOrderItemDQXPipeline: Bronze to Silver with DQX validation
+- DQX Framework: Proper Databricks DQX library integration
+- Financial Rules: Purchase order specific validation (total_amount calculation, etc.)
+- Single Table: All records with quality flags (flag_check: PASS/FAIL)
+- Enhanced Schema: All Bronze fields + DQX quality metadata
+
+📊 PURCHASE ORDER SPECIFIC DQX RULES:
+================================================================================
+
+CRITICAL RULES (error level):
+--------------------------------------------------------------------------------
+1. Financial Accuracy:
+   DQRowRule(
+       name="total_amount_calculation_valid",
+       criticality="error",
+       check_func=check_funcs.sql_expression,
+       column="total_amount",
+       check_func_kwargs={
+           "expression": "abs(total_amount - (quantity * unit_price)) <= 0.01",
+           "msg": "Total amount must equal quantity * unit_price"
+       }
+   )
+
+2. Positive Values:
+   - quantity > 0
+   - unit_price > 0
+
+3. Required Fields:
+   - order_id not null/empty
+   - product_id not null/empty
+   - customer_id not null/empty
+
+HIGH RULES (warn level):
+--------------------------------------------------------------------------------
+4. Status Validation:
+   - Valid order_status values (NEW, PROCESSING, SHIPPED, DELIVERED, CANCELLED)
+   - Valid payment_status values (PENDING, PAID, REFUNDED, FAILED)
+
+5. Business Logic Consistency:
+   - Payment status should align with order status
+   - When order_status = DELIVERED, payment_status should be PAID
+
+MEDIUM RULES (warn level):
+--------------------------------------------------------------------------------
+6. Format Validation:
+   - Order ID format: ORD-XXXXXX pattern
+   - Product ID format: PRD### pattern
+
+7. Range Validation:
+   - Reasonable quantity limits (<=1000)
+   - Reasonable price limits (<=50000)
+
+ENHANCED SILVER SCHEMA WITH DQX METADATA:
+--------------------------------------------------------------------------------
+- Core Purchase Order Business Data (all fields from data model)
+- Inherited Technical Fields (from Bronze)
+- EventHub Technical Fields
+- Silver Processing Metadata
+- DQX Quality Metadata Fields:
+  * flag_check (PASS/FAIL/WARNING)
+  * description_failure
+  * dqx_rule_results
+  * dqx_quality_score (0.0-1.0)
+  * dqx_validation_timestamp
+  * dqx_lineage_id
+  * dqx_criticality_level
+  * failed_rules_count
+  * passed_rules_count
+
+⚙️ CONFIGURATION FILES:
+================================================================================
+
+.env.example (Same Infrastructure, Different Resources):
+--------------------------------------------------------------------------------
+# Azure EventHub Configuration (Same Infrastructure)
+EVENTHUB_CONNECTION_STRING="Endpoint=sb://your-namespace.servicebus.windows.net/;SharedAccessKeyName=your-policy;SharedAccessKey=your-key"
+
+# Purchase Order Specific Settings
+PURCHASE_ORDER_EVENTHUB_NAME="purchase-order-items"
+PURCHASE_ORDER_CONSUMER_GROUP="$Default"
+
+# Azure Storage Configuration (Same Account, Different Containers)
+STORAGE_ACCOUNT_NAME="idisitcusadls2"
+PURCHASE_ORDER_BRONZE_CONTAINER="purchase-order-test"
+PURCHASE_ORDER_SILVER_CONTAINER="purchase-order-test"
+
+# Databricks Configuration (Same Workspace)
+DATABRICKS_HOST="your-databricks-host"
+DATABRICKS_TOKEN="your-access-token"
+DATABRICKS_CLUSTER_ID="your-cluster-id"
+
+# Pipeline Configuration
+PURCHASE_ORDER_BATCH_SIZE="50"
+PURCHASE_ORDER_TRIGGER_INTERVAL="5 seconds"
+PURCHASE_ORDER_CHECKPOINT_LOCATION="/mnt/checkpoints/purchase-order-dqx/"
+
+requirements.txt:
+--------------------------------------------------------------------------------
+# Azure Dependencies
+azure-eventhub>=5.11.0
+azure-core>=1.28.0
+azure-identity>=1.14.0
+azure-storage-blob>=12.17.0
+
+# Data Processing
+pyspark>=3.4.0
+delta-spark>=2.4.0
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Data Validation
+pydantic>=2.0.0
+jsonschema>=4.19.0
+
+# DQX Framework
+databricks-labs-dqx
+
+# Utilities
+python-dotenv>=1.0.0
+backoff>=2.2.1
+structlog>=23.1.0
+
+🧪 TESTING STRATEGY - 67+ TESTS:
+================================================================================
+
+Test Categories:
+--------------------------------------------------------------------------------
+- Unit Tests (44 tests):
+  * PurchaseOrderItem data model validation (8 tests)
+  * DQX rule evaluation for financial data (15 tests)
+  * Business transformation logic (12 tests)
+  * Utility functions (9 tests)
+
+- Integration Tests (12 tests):
+  * EventHub connectivity for purchase orders (3 tests)
+  * End-to-end pipeline flow (4 tests)
+  * Hive Metastore operations (3 tests)
+  * Checkpoint recovery (2 tests)
+
+- Performance Tests (11 tests):
+  * Throughput benchmarks for purchase order processing (4 tests)
+  * Memory usage monitoring (3 tests)
+  * DQX processing speed for financial validation (2 tests)
+  * Concurrent processing (2 tests)
+
+Test Files:
+--------------------------------------------------------------------------------
+tests/
+├── simple_test_purchase_order_item_producer.py       # Producer tests
+├── simple_test_purchase_order_item_listener.py       # Listener tests
+├── simple_test_purchase_order_item_dqx.py           # DQX pipeline tests
+├── cloud_test_purchase_order_eventhub.py            # Cloud integration
+├── conftest.py                                       # Test fixtures
+├── pytest.ini                                       # Test configuration
+├── README.md                                         # Testing documentation
+├── TESTING_SOLUTION.md                              # Testing approach guide
+└── requirements.txt                                  # Test dependencies
+
+📈 IMPLEMENTATION TIMELINE - 12 DAYS:
+================================================================================
+
+Phase 1: Project Setup (Days 1-2)
+--------------------------------------------------------------------------------
+- Create independent directory structure
+- Set up environment with exact widget configurations matching reference
+- Initialize Git repository with CI/CD workflows
+- Configure Azure resources (topics, containers) reusing existing infrastructure
+
+Phase 2: Core Development (Days 3-7)
+--------------------------------------------------------------------------------
+Day 3: Implement PurchaseOrderItem data model with financial validation
+- Create data class with financial validation in __post_init__
+- Implement PurchaseOrderItemFactory for realistic data generation
+- Add quality test scenarios for DQX testing
+
+Day 4: Build EventHub Producer with exact widget pattern
+- Implement PurchaseOrderItemProducer class
+- Use exact widget configuration from EventHub_Producer_Databricks.py
+- Add Databricks integration (cluster_id, notebook_path)
+- Include 5% quality issues for DQX testing
+
+Day 5: Create EventHub Listener with Hive Metastore integration
+- Implement PurchaseOrderItemListener class
+- Use exact widget configuration from EventHub_Listener_HiveMetastore_Databricks.py
+- Bronze schema with purchase order specific fields
+- Automatic Hive table creation and registration
+
+Days 6-7: Develop DQX Enhanced Pipeline with proper library integration
+- Implement PurchaseOrderItemDQXPipeline class
+- Use exact widget configuration from Bronze_to_Silver_DQX_Enhanced_Pipeline.py
+- Proper DQX framework initialization following reference pattern
+- Financial-specific DQX rules implementation
+- Single enhanced table with quality flags
+
+Phase 3: Testing (Days 8-10)
+--------------------------------------------------------------------------------
+Day 8: Unit tests for data model and financial validation (44 tests)
+- PurchaseOrderItem model validation tests
+- DQX rule evaluation tests for financial data
+- Business logic and transformation tests
+
+Day 9: Integration tests for end-to-end flow (12 tests)
+- EventHub connectivity tests
+- Complete pipeline flow validation
+- Hive Metastore integration tests
+
+Day 10: Performance tests and DQX validation (11 tests)
+- Throughput benchmarks for purchase order processing
+- DQX performance with financial rules
+- Memory usage and concurrent processing tests
+
+Phase 4: Documentation & Deployment (Days 11-12)
+--------------------------------------------------------------------------------
+Day 11: Complete documentation and deployment guides
+- README with purchase order specific examples
+- PurchaseOrderItem_Deployment_Guide.md
+- API documentation for all components
+- Configuration and troubleshooting guides
+
+Day 12: Final integration testing and performance tuning
+- End-to-end pipeline validation
+- Performance optimization
+- Final deployment verification
+
+🎯 KEY BENEFITS:
+================================================================================
+
+Infrastructure Efficiency:
+--------------------------------------------------------------------------------
+✅ Same Azure Resources: Reuse existing EventHub namespace, storage account, Databricks workspace
+✅ Cost Effective: Different topics/containers, same infrastructure
+✅ Proven Configuration: Exact widget patterns from working weather pipeline
+
+Technical Excellence:
+--------------------------------------------------------------------------------
+✅ Proper DQX Integration: Following exact reference implementation pattern
+✅ Financial Data Quality: Critical validation for purchase order accuracy
+✅ Single Enhanced Table: All records with quality flags for simple analysis
+✅ Independent Codebase: Complete separation from weather pipeline
+
+Business Value:
+--------------------------------------------------------------------------------
+✅ Financial Integrity: Critical for accounting and compliance
+✅ Real-time Processing: Immediate purchase order validation
+✅ Quality Monitoring: Comprehensive DQX quality tracking
+✅ Scalable Architecture: Proven patterns for enterprise use
+
+EXECUTION FLOW:
+================================================================================
+
+1. Start PurchaseOrderItem_EventHub_Producer.py notebook
+   - Configure widgets with purchase order settings
+   - Generate realistic purchase order data with 5% quality issues
+   - Stream to Azure EventHub (purchase-order-items topic)
+
+2. Start PurchaseOrderItem_EventHub_Listener.py notebook
+   - Configure widgets with Bronze layer settings
+   - Process EventHub stream to Bronze layer
+   - Register Hive Metastore table automatically
+
+3. Start PurchaseOrderItem_Bronze_to_Silver_DQX.py notebook
+   - Configure widgets with Silver layer and DQX settings
+   - Apply financial DQX validation rules
+   - Write to enhanced Silver table with quality flags
+
+4. Monitor and analyze results
+   - All records in single Silver table with flag_check field
+   - Use WHERE flag_check = 'PASS' for valid records
+   - Use WHERE flag_check = 'FAIL' for quality issues
+
+READY FOR IMPLEMENTATION:
+================================================================================
+This plan provides a complete, independent Purchase Order Item streaming pipeline
+that reuses existing infrastructure while maintaining complete separation from
+the weather pipeline. All configurations follow exact patterns from proven
+reference implementations, ensuring reliability and consistency.
+
+The pipeline includes proper financial data validation, comprehensive DQX quality
+framework integration, and extensive testing coverage targeting 87% like the
+weather pipeline achieved.
+
+Please review and approve to begin implementation.

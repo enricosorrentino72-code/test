@@ -1,5 +1,4 @@
-"""
-Purchase Order DQX Pipeline Module
+"""Purchase Order DQX Pipeline Module
 
 This module implements the Bronze to Silver streaming pipeline with DQX quality validation
 for purchase order items. It follows a single enhanced table approach where all records
@@ -11,15 +10,13 @@ Date: 2024
 
 import logging
 import uuid
-from datetime import datetime, timezone
-from typing import Dict, Any, Optional, List, Tuple
 from dataclasses import dataclass
+from typing import Any, Dict, List
 
-from pyspark.sql import SparkSession, DataFrame
+from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.functions import *
-from pyspark.sql.types import *
 from pyspark.sql.streaming import StreamingQuery
-from delta.tables import DeltaTable
+from pyspark.sql.types import *
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -43,8 +40,7 @@ class PipelineConfig:
 
 
 class PurchaseOrderDQXPipeline:
-    """
-    Bronze to Silver streaming pipeline with DQX quality validation for purchase orders.
+    """Bronze to Silver streaming pipeline with DQX quality validation for purchase orders.
 
     This class implements a structured streaming pipeline that reads from Bronze layer,
     applies DQX quality validation, and writes to an enhanced Silver layer with quality metadata.
@@ -52,8 +48,7 @@ class PurchaseOrderDQXPipeline:
     """
 
     def __init__(self, spark: SparkSession, config: PipelineConfig):
-        """
-        Initialize the DQX pipeline.
+        """Initialize the DQX pipeline.
 
         Args:
             spark: Active Spark session
@@ -73,13 +68,12 @@ class PurchaseOrderDQXPipeline:
         # Configure Spark for streaming
         self._configure_spark_streaming()
 
-        logger.info(f"✅ PurchaseOrderDQXPipeline initialized")
+        logger.info("✅ PurchaseOrderDQXPipeline initialized")
         logger.info(f"   Source: {self.bronze_full_table}")
         logger.info(f"   Target: {self.silver_full_table}")
 
     def _initialize_dqx_components(self):
         """Initialize DQX framework components"""
-
         self.dqx_available = False
         self.dq_engine = None
         self.quality_rules = []
@@ -104,7 +98,6 @@ class PurchaseOrderDQXPipeline:
 
     def _configure_spark_streaming(self):
         """Configure Spark session for optimal streaming performance"""
-
         spark_configs = {
             "spark.sql.streaming.metricsEnabled": "true",
             "spark.sql.adaptive.enabled": "true",
@@ -120,8 +113,7 @@ class PurchaseOrderDQXPipeline:
         logger.info("✅ Spark configured for DQX-enhanced streaming pipeline")
 
     def parse_purchase_order_payload(self, df: DataFrame) -> DataFrame:
-        """
-        Parse JSON payload and extract purchase order data.
+        """Parse JSON payload and extract purchase order data.
 
         Args:
             df: Bronze layer DataFrame with raw JSON payload
@@ -218,8 +210,7 @@ class PurchaseOrderDQXPipeline:
         return parsed_df
 
     def _handle_missing_values(self, df: DataFrame) -> DataFrame:
-        """
-        Handle missing values with appropriate defaults.
+        """Handle missing values with appropriate defaults.
 
         Args:
             df: DataFrame with parsed data
@@ -266,8 +257,7 @@ class PurchaseOrderDQXPipeline:
         return df
 
     def apply_dqx_quality_validation_single_table(self, df: DataFrame, rules: List) -> DataFrame:
-        """
-        Apply DQX quality validation and add quality metadata to ALL records.
+        """Apply DQX quality validation and add quality metadata to ALL records.
 
         This implements the single table approach where all records (valid and invalid)
         are stored in the same table with quality flags.
@@ -311,8 +301,7 @@ class PurchaseOrderDQXPipeline:
             return self._apply_basic_quality_validation_single_table(df)
 
     def _apply_basic_quality_validation_single_table(self, df: DataFrame) -> DataFrame:
-        """
-        Fallback basic quality validation when DQX is not available.
+        """Fallback basic quality validation when DQX is not available.
 
         Args:
             df: DataFrame to validate
@@ -388,8 +377,7 @@ class PurchaseOrderDQXPipeline:
         return df_with_quality
 
     def _add_dqx_quality_metadata(self, df: DataFrame, is_valid: bool) -> DataFrame:
-        """
-        Add DQX-specific quality metadata fields to records.
+        """Add DQX-specific quality metadata fields to records.
 
         Args:
             df: DataFrame to add metadata to
@@ -423,8 +411,7 @@ class PurchaseOrderDQXPipeline:
                     .withColumn("passed_rules_count", lit(0))
 
     def add_silver_processing_metadata(self, df: DataFrame) -> DataFrame:
-        """
-        Add Silver layer processing metadata.
+        """Add Silver layer processing metadata.
 
         Args:
             df: DataFrame to add metadata to
@@ -441,8 +428,7 @@ class PurchaseOrderDQXPipeline:
         )
 
     def transform_bronze_to_silver_dqx(self, bronze_df: DataFrame, quality_rules: List) -> DataFrame:
-        """
-        Complete transformation from Bronze to Silver with DQX quality validation.
+        """Complete transformation from Bronze to Silver with DQX quality validation.
 
         Args:
             bronze_df: Bronze layer DataFrame
@@ -466,8 +452,7 @@ class PurchaseOrderDQXPipeline:
         return silver_df
 
     def get_trigger_config(self) -> Dict[str, str]:
-        """
-        Get trigger configuration for streaming.
+        """Get trigger configuration for streaming.
 
         Returns:
             Dictionary with trigger configuration
@@ -484,8 +469,7 @@ class PurchaseOrderDQXPipeline:
             return {"processingTime": "5 seconds"}
 
     def start_streaming(self, quality_rules: List) -> StreamingQuery:
-        """
-        Start the Bronze to Silver streaming pipeline with DQX validation.
+        """Start the Bronze to Silver streaming pipeline with DQX validation.
 
         Args:
             quality_rules: List of DQX quality rules to apply
@@ -497,7 +481,7 @@ class PurchaseOrderDQXPipeline:
         logger.info("=" * 60)
         logger.info(f"📊 Source: {self.bronze_full_table}")
         logger.info(f"✨ Target: {self.silver_full_table}")
-        logger.info(f"📋 Approach: Single table with quality flags")
+        logger.info("📋 Approach: Single table with quality flags")
         logger.info(f"🔍 Quality Framework: {'Databricks DQX' if self.dqx_available else 'Basic Validation'}")
         logger.info(f"📏 Quality Threshold: {self.config.quality_threshold}")
         logger.info(f"⚡ Trigger: {self.config.trigger_mode}")
@@ -541,7 +525,7 @@ class PurchaseOrderDQXPipeline:
             logger.info("✅ Bronze to Silver DQX pipeline started successfully")
             logger.info(f"📊 Query ID: {self.streaming_query.id}")
             logger.info(f"🔄 Run ID: {self.streaming_query.runId}")
-            logger.info(f"📝 Mode: APPEND-ONLY")
+            logger.info("📝 Mode: APPEND-ONLY")
             logger.info(f"🗄️ Writing to Enhanced Silver table: {self.silver_full_table}")
 
             return self.streaming_query
@@ -552,7 +536,6 @@ class PurchaseOrderDQXPipeline:
 
     def stop_streaming(self):
         """Stop the streaming pipeline gracefully"""
-
         if self.streaming_query and self.streaming_query.isActive:
             logger.info("⏹️ Stopping DQX streaming pipeline...")
             self.streaming_query.stop()
@@ -573,8 +556,7 @@ class PurchaseOrderDQXPipeline:
             logger.info("ℹ️ Pipeline is already stopped")
 
     def get_pipeline_status(self) -> Dict[str, Any]:
-        """
-        Get current pipeline status.
+        """Get current pipeline status.
 
         Returns:
             Dictionary with pipeline status information

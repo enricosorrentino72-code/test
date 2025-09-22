@@ -13,24 +13,36 @@
 
 # COMMAND ----------
 
-from pyspark.sql import SparkSession, DataFrame
+import logging
+from datetime import datetime
+from typing import Any, Dict, Optional
+
+from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.functions import (
-    col, from_json, current_timestamp, date_format,
-    hour, lit, length, uuid, get_json_object
+    col,
+    current_timestamp,
+    date_format,
+    get_json_object,
+    hour,
+    length,
+    lit,
+    uuid,
 )
 from pyspark.sql.types import (
-    StructType, StructField, StringType, IntegerType,
-    LongType, TimestampType, DateType, DoubleType
+    DateType,
+    DoubleType,
+    IntegerType,
+    LongType,
+    StringType,
+    StructField,
+    StructType,
+    TimestampType,
 )
-import logging
-from typing import Dict, Any, Optional
-from datetime import datetime
 
 # COMMAND ----------
 
 class PurchaseOrderItemListener:
-    """
-    Listener class for consuming purchase order events from EventHub.
+    """Listener class for consuming purchase order events from EventHub.
 
     This class manages:
     - EventHub streaming connection
@@ -46,8 +58,7 @@ class PurchaseOrderItemListener:
                  bronze_config: Dict[str, str],
                  streaming_config: Dict[str, Any],
                  log_level: str = "INFO"):
-        """
-        Initialize the Purchase Order Item Listener.
+        """Initialize the Purchase Order Item Listener.
 
         Args:
             spark: Active Spark session
@@ -152,8 +163,7 @@ class PurchaseOrderItemListener:
         ])
 
     def create_eventhub_stream(self) -> DataFrame:
-        """
-        Create a streaming DataFrame from EventHub.
+        """Create a streaming DataFrame from EventHub.
 
         Returns:
             DataFrame: Streaming DataFrame from EventHub
@@ -186,8 +196,7 @@ class PurchaseOrderItemListener:
         return stream_df
 
     def transform_to_bronze(self, stream_df: DataFrame) -> DataFrame:
-        """
-        Transform EventHub stream to Bronze layer format.
+        """Transform EventHub stream to Bronze layer format.
 
         Args:
             stream_df: Raw streaming DataFrame from EventHub
@@ -253,8 +262,7 @@ class PurchaseOrderItemListener:
     def start_streaming(self,
                        output_mode: str = "append",
                        trigger_interval: str = "5 seconds") -> Any:
-        """
-        Start the streaming process from EventHub to Bronze layer.
+        """Start the streaming process from EventHub to Bronze layer.
 
         Args:
             output_mode: Spark output mode (append, complete, update)
@@ -300,8 +308,7 @@ class PurchaseOrderItemListener:
             raise
 
     def _process_batch(self, batch_df: DataFrame, batch_id: int):
-        """
-        Process each micro-batch with monitoring and error handling.
+        """Process each micro-batch with monitoring and error handling.
 
         Args:
             batch_df: DataFrame for current batch
@@ -342,7 +349,7 @@ class PurchaseOrderItemListener:
 
         except Exception as e:
             self.logger.error(f"Error processing batch {batch_id}: {e}")
-            self.stats["errors"].append(f"Batch {batch_id}: {str(e)}")
+            self.stats["errors"].append(f"Batch {batch_id}: {e!s}")
             raise
 
     def stop_streaming(self):
@@ -356,8 +363,7 @@ class PurchaseOrderItemListener:
                 self.logger.error(f"Error stopping stream: {e}")
 
     def get_stream_status(self) -> Dict[str, Any]:
-        """
-        Get current streaming status and statistics.
+        """Get current streaming status and statistics.
 
         Returns:
             Dictionary with stream status information
@@ -391,8 +397,7 @@ class PurchaseOrderItemListener:
         return status
 
     def await_termination(self, timeout: Optional[int] = None):
-        """
-        Wait for the stream to terminate.
+        """Wait for the stream to terminate.
 
         Args:
             timeout: Optional timeout in seconds
@@ -415,8 +420,7 @@ class PurchaseOrderItemListener:
 # COMMAND ----------
 
 def create_listener_from_widgets(spark, dbutils) -> PurchaseOrderItemListener:
-    """
-    Create a listener instance from Databricks widget values.
+    """Create a listener instance from Databricks widget values.
 
     Args:
         spark: Spark session

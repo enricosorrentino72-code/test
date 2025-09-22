@@ -1,6 +1,5 @@
 # Purchase Order Item Classes Package
-"""
-This package contains all the class definitions for the Purchase Order Item streaming pipeline.
+"""This package contains all the class definitions for the Purchase Order Item streaming pipeline.
 
 Classes:
 - PurchaseOrderItem: Data model with financial validation
@@ -17,16 +16,16 @@ __version__ = "1.1.0"
 __author__ = "Purchase Order Pipeline Team"
 
 # Import main classes for easy access
-from .purchase_order_item_model import PurchaseOrderItem
-from .purchase_order_item_factory import PurchaseOrderItemFactory
-from .purchase_order_item_producer import PurchaseOrderItemProducer
-from .purchase_order_item_listener import PurchaseOrderItemListener
+from .purchase_order_dqx_monitor import MonitorConfig, PurchaseOrderDQXMonitor
+from .purchase_order_dqx_pipeline import PipelineConfig, PurchaseOrderDQXPipeline
 
 # Import DQX classes
-from .purchase_order_dqx_rules import PurchaseOrderDQXRules, DQXRuleConfig
-from .purchase_order_dqx_pipeline import PurchaseOrderDQXPipeline, PipelineConfig
+from .purchase_order_dqx_rules import DQXRuleConfig, PurchaseOrderDQXRules
+from .purchase_order_item_factory import PurchaseOrderItemFactory
+from .purchase_order_item_listener import PurchaseOrderItemListener
+from .purchase_order_item_model import PurchaseOrderItem
+from .purchase_order_item_producer import PurchaseOrderItemProducer
 from .purchase_order_silver_manager import PurchaseOrderSilverManager, SilverTableConfig
-from .purchase_order_dqx_monitor import PurchaseOrderDQXMonitor, MonitorConfig
 
 __all__ = [
     # Core classes

@@ -13,18 +13,17 @@
 
 # COMMAND ----------
 
-from pyspark.sql import SparkSession, DataFrame
-from pyspark.sql.functions import col, count, sum as spark_sum, min as spark_min, max as spark_max
 import logging
-from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
-import os
+from typing import Any, Dict, List, Optional
+
+from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql.functions import col, count
 
 # COMMAND ----------
 
 class BronzeLayerHandler:
-    """
-    Handler class for Bronze layer operations in ADLS Gen2.
+    """Handler class for Bronze layer operations in ADLS Gen2.
 
     This class manages:
     - ADLS Gen2 storage configuration
@@ -40,8 +39,7 @@ class BronzeLayerHandler:
                  container: str,
                  bronze_path: str,
                  log_level: str = "INFO"):
-        """
-        Initialize the Bronze Layer Handler.
+        """Initialize the Bronze Layer Handler.
 
         Args:
             spark: Active Spark session
@@ -88,8 +86,7 @@ class BronzeLayerHandler:
             raise
 
     def get_full_path(self, relative_path: str = "") -> str:
-        """
-        Get the full ADLS Gen2 path.
+        """Get the full ADLS Gen2 path.
 
         Args:
             relative_path: Optional relative path to append
@@ -103,8 +100,7 @@ class BronzeLayerHandler:
         return base_path
 
     def get_partition_path(self, ingestion_date: str, ingestion_hour: int) -> str:
-        """
-        Get the partition path for a specific date and hour.
+        """Get the partition path for a specific date and hour.
 
         Args:
             ingestion_date: Date in YYYY-MM-DD format
@@ -143,8 +139,7 @@ class BronzeLayerHandler:
                              batch_df: DataFrame,
                              write_mode: str = "append",
                              partition_columns: List[str] = None) -> Dict[str, Any]:
-        """
-        Write a batch DataFrame to Bronze layer with partitioning.
+        """Write a batch DataFrame to Bronze layer with partitioning.
 
         Args:
             batch_df: DataFrame to write
@@ -193,8 +188,7 @@ class BronzeLayerHandler:
             raise
 
     def _get_partition_info(self, df: DataFrame, partition_columns: List[str]) -> List[Dict[str, Any]]:
-        """
-        Get partition information from DataFrame.
+        """Get partition information from DataFrame.
 
         Args:
             df: DataFrame to analyze
@@ -232,8 +226,7 @@ class BronzeLayerHandler:
                         start_date: Optional[str] = None,
                         end_date: Optional[str] = None,
                         hours: Optional[List[int]] = None) -> DataFrame:
-        """
-        Read data from Bronze layer with optional filtering.
+        """Read data from Bronze layer with optional filtering.
 
         Args:
             start_date: Start date in YYYY-MM-DD format
@@ -273,8 +266,7 @@ class BronzeLayerHandler:
             raise
 
     def get_storage_statistics(self) -> Dict[str, Any]:
-        """
-        Get storage statistics for Bronze layer.
+        """Get storage statistics for Bronze layer.
 
         Returns:
             Dictionary with storage statistics
@@ -332,8 +324,7 @@ class BronzeLayerHandler:
             return {"error": str(e)}
 
     def _get_partition_list(self) -> List[str]:
-        """
-        Get list of existing partitions.
+        """Get list of existing partitions.
 
         Returns:
             List of partition paths
@@ -359,8 +350,7 @@ class BronzeLayerHandler:
             return []
 
     def cleanup_old_partitions(self, retention_days: int = 30) -> Dict[str, Any]:
-        """
-        Clean up old partitions beyond retention period.
+        """Clean up old partitions beyond retention period.
 
         Args:
             retention_days: Number of days to retain
@@ -415,8 +405,7 @@ class BronzeLayerHandler:
             return {"error": str(e)}
 
     def _calculate_partition_size(self, partition_path: str) -> int:
-        """
-        Calculate the total size of a partition.
+        """Calculate the total size of a partition.
 
         Args:
             partition_path: Path to the partition
@@ -440,8 +429,7 @@ class BronzeLayerHandler:
             return 0
 
     def validate_bronze_data(self, sample_size: int = 1000) -> Dict[str, Any]:
-        """
-        Validate Bronze layer data quality.
+        """Validate Bronze layer data quality.
 
         Args:
             sample_size: Number of records to sample for validation

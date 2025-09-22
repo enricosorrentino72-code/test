@@ -14,13 +14,11 @@
 # COMMAND ----------
 
 import random
-import uuid
-from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
 
 # COMMAND ----------
-
 # Import the data model
 from purchase_order_item_model import PurchaseOrderItem
 
@@ -39,8 +37,7 @@ class ProductCatalog:
 # COMMAND ----------
 
 class PurchaseOrderItemFactory:
-    """
-    Factory class for generating realistic purchase order items with various scenarios.
+    """Factory class for generating realistic purchase order items with various scenarios.
 
     This factory simulates real-world purchase order patterns including:
     - Normal orders (95%)
@@ -50,8 +47,7 @@ class PurchaseOrderItemFactory:
     """
 
     def __init__(self, quality_issue_rate: float = 0.05):
-        """
-        Initialize the factory with product catalog and configuration.
+        """Initialize the factory with product catalog and configuration.
 
         Args:
             quality_issue_rate: Percentage of orders with quality issues (default 5%)
@@ -115,8 +111,7 @@ class PurchaseOrderItemFactory:
         return {"order_status": pattern["order_status"], "payment_status": pattern["payment_status"]}
 
     def _calculate_financials(self, quantity: int, unit_price: float) -> Dict[str, float]:
-        """
-        Calculate financial components for an order.
+        """Calculate financial components for an order.
 
         Args:
             quantity: Number of items
@@ -159,8 +154,7 @@ class PurchaseOrderItemFactory:
         }
 
     def _inject_quality_issue(self, order: PurchaseOrderItem) -> PurchaseOrderItem:
-        """
-        Inject a data quality issue into an order for DQX testing.
+        """Inject a data quality issue into an order for DQX testing.
 
         Args:
             order: The order to modify
@@ -202,8 +196,7 @@ class PurchaseOrderItemFactory:
     def generate_single_item(self,
                             inject_quality_issue: Optional[bool] = None,
                             specific_scenario: Optional[str] = None) -> PurchaseOrderItem:
-        """
-        Generate a single purchase order item.
+        """Generate a single purchase order item.
 
         Args:
             inject_quality_issue: Force quality issue injection
@@ -278,8 +271,7 @@ class PurchaseOrderItemFactory:
         return order
 
     def generate_batch(self, batch_size: int = 50, scenario_mix: Optional[Dict[str, float]] = None) -> List[PurchaseOrderItem]:
-        """
-        Generate a batch of purchase order items.
+        """Generate a batch of purchase order items.
 
         Args:
             batch_size: Number of items to generate
@@ -304,8 +296,7 @@ class PurchaseOrderItemFactory:
         return orders
 
     def generate_seasonal_batch(self, batch_size: int = 50, season: str = "normal") -> List[PurchaseOrderItem]:
-        """
-        Generate orders with seasonal patterns.
+        """Generate orders with seasonal patterns.
 
         Args:
             batch_size: Number of items to generate
@@ -346,8 +337,7 @@ class PurchaseOrderItemFactory:
         return orders
 
     def get_statistics(self, orders: List[PurchaseOrderItem]) -> Dict[str, Any]:
-        """
-        Calculate statistics for a batch of orders.
+        """Calculate statistics for a batch of orders.
 
         Args:
             orders: List of purchase orders
@@ -402,4 +392,4 @@ print("Statistics:", factory.get_statistics(batch))
 # COMMAND ----------
 
 # Export for use in other notebooks
-__all__ = ['PurchaseOrderItemFactory', 'ProductCatalog']
+__all__ = ['ProductCatalog', 'PurchaseOrderItemFactory']

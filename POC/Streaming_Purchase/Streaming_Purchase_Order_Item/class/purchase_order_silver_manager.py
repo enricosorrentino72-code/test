@@ -1,5 +1,4 @@
-"""
-Purchase Order Silver Manager Module
+"""Purchase Order Silver Manager Module
 
 This module manages the Silver layer Hive Metastore tables for purchase order items
 with DQX quality metadata. It handles table creation, schema management, and ADLS
@@ -10,12 +9,12 @@ Date: 2024
 """
 
 import logging
-from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
+from typing import Any, Dict
 
 from pyspark.sql import SparkSession
-from pyspark.sql.types import *
 from pyspark.sql.functions import *
+from pyspark.sql.types import *
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -34,16 +33,14 @@ class SilverTableConfig:
 
 
 class PurchaseOrderSilverManager:
-    """
-    Manage Silver layer Hive Metastore tables for purchase order items with DQX metadata.
+    """Manage Silver layer Hive Metastore tables for purchase order items with DQX metadata.
 
     This class handles the creation and management of enhanced Silver tables that store
     all records (valid and invalid) with quality flags in a single table approach.
     """
 
     def __init__(self, spark: SparkSession, config: SilverTableConfig):
-        """
-        Initialize the Silver table manager.
+        """Initialize the Silver table manager.
 
         Args:
             spark: Active Spark session
@@ -59,13 +56,12 @@ class PurchaseOrderSilverManager:
         # Define enhanced schema
         self.enhanced_silver_schema = self._get_enhanced_silver_schema()
 
-        logger.info(f"✅ PurchaseOrderSilverManager initialized")
+        logger.info("✅ PurchaseOrderSilverManager initialized")
         logger.info(f"   Table: {self.full_table}")
         logger.info(f"   Storage: {config.storage_account}/{config.container}")
 
     def _setup_adls_configuration(self):
         """Setup ADLS Gen2 configuration and paths"""
-
         self.base_path = f"abfss://{self.config.container}@{self.config.storage_account}.dfs.core.windows.net"
 
         # Check if mount point exists
@@ -85,8 +81,7 @@ class PurchaseOrderSilverManager:
             self.is_mounted = False
 
     def get_table_path(self) -> str:
-        """
-        Get the full storage path for the Silver table.
+        """Get the full storage path for the Silver table.
 
         Returns:
             Full ADLS path for the table
@@ -99,8 +94,7 @@ class PurchaseOrderSilverManager:
             return f"{self.base_path}/{relative_path}"
 
     def _get_enhanced_silver_schema(self) -> StructType:
-        """
-        Define enhanced Silver layer schema with DQX quality metadata.
+        """Define enhanced Silver layer schema with DQX quality metadata.
 
         Returns:
             StructType schema for the enhanced Silver table
@@ -183,8 +177,7 @@ class PurchaseOrderSilverManager:
             raise
 
     def create_enhanced_silver_table(self) -> bool:
-        """
-        Create Enhanced Silver Delta table with DQX quality metadata.
+        """Create Enhanced Silver Delta table with DQX quality metadata.
 
         Returns:
             True if successful, False otherwise
@@ -252,8 +245,7 @@ class PurchaseOrderSilverManager:
             return False
 
     def get_table_statistics(self) -> Dict[str, Any]:
-        """
-        Get comprehensive table statistics including quality metrics.
+        """Get comprehensive table statistics including quality metrics.
 
         Returns:
             Dictionary with table statistics
@@ -347,7 +339,7 @@ class PurchaseOrderSilverManager:
 
                 if 'quality_metrics' in stats:
                     metrics = stats['quality_metrics']
-                    logger.info(f"\n📊 DQX Quality Scores:")
+                    logger.info("\n📊 DQX Quality Scores:")
                     logger.info(f"   Average: {metrics['avg_score']:.3f}")
                     logger.info(f"   Range: {metrics['min_score']:.3f} - {metrics['max_score']:.3f}")
             else:
@@ -357,8 +349,7 @@ class PurchaseOrderSilverManager:
             logger.error(f"❌ Error displaying table info: {e}")
 
     def analyze_quality_failures(self, limit: int = 10):
-        """
-        Analyze quality failures in detail.
+        """Analyze quality failures in detail.
 
         Args:
             limit: Number of failure examples to show
@@ -410,8 +401,7 @@ class PurchaseOrderSilverManager:
             logger.error(f"❌ Error analyzing quality failures: {e}")
 
     def get_quality_trends(self, days: int = 7) -> Dict[str, Any]:
-        """
-        Get quality trends over specified number of days.
+        """Get quality trends over specified number of days.
 
         Args:
             days: Number of days to analyze
@@ -469,8 +459,7 @@ class PurchaseOrderSilverManager:
             raise
 
     def get_schema_info(self) -> Dict[str, Any]:
-        """
-        Get detailed schema information.
+        """Get detailed schema information.
 
         Returns:
             Dictionary with schema details

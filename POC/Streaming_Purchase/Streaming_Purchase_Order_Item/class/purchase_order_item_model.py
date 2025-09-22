@@ -12,17 +12,16 @@
 
 # COMMAND ----------
 
+import json
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional, Dict, Any
-import json
+from typing import Any, Dict, Optional
 
 # COMMAND ----------
 
 @dataclass
 class PurchaseOrderItem:
-    """
-    Data model for Purchase Order Items in the streaming pipeline.
+    """Data model for Purchase Order Items in the streaming pipeline.
 
     This class represents a single purchase order item with complete business context,
     financial calculations, and metadata for tracking through the pipeline.
@@ -86,8 +85,7 @@ class PurchaseOrderItem:
         self.validate_financial_data()
 
     def validate_financial_data(self) -> bool:
-        """
-        Validate financial calculations and business rules.
+        """Validate financial calculations and business rules.
 
         Returns:
             bool: True if all validations pass, False otherwise
@@ -127,8 +125,7 @@ class PurchaseOrderItem:
         return self.is_valid
 
     def to_dict(self) -> Dict[str, Any]:
-        """
-        Convert the purchase order item to a dictionary for serialization.
+        """Convert the purchase order item to a dictionary for serialization.
 
         Returns:
             Dict[str, Any]: Dictionary representation of the purchase order
@@ -178,8 +175,7 @@ class PurchaseOrderItem:
         }
 
     def to_json(self) -> str:
-        """
-        Convert the purchase order item to JSON string.
+        """Convert the purchase order item to JSON string.
 
         Returns:
             str: JSON representation of the purchase order
@@ -188,8 +184,7 @@ class PurchaseOrderItem:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'PurchaseOrderItem':
-        """
-        Create a PurchaseOrderItem from a dictionary.
+        """Create a PurchaseOrderItem from a dictionary.
 
         Args:
             data: Dictionary containing purchase order data
@@ -208,8 +203,7 @@ class PurchaseOrderItem:
         return cls(**data)
 
     def calculate_net_amount(self) -> float:
-        """
-        Calculate the net amount after all adjustments.
+        """Calculate the net amount after all adjustments.
 
         Returns:
             float: Net amount including all costs and discounts
@@ -219,8 +213,7 @@ class PurchaseOrderItem:
         return round(net_amount, 2)
 
     def get_financial_summary(self) -> Dict[str, float]:
-        """
-        Get a summary of all financial components.
+        """Get a summary of all financial components.
 
         Returns:
             Dict[str, float]: Financial breakdown

@@ -13,26 +13,24 @@
 
 # COMMAND ----------
 
-import json
-import time
-import logging
-from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional
-from azure.eventhub import EventHubProducerClient, EventData, EventDataBatch
-from azure.eventhub.exceptions import EventHubError
 import concurrent.futures
+import logging
+import time
+from datetime import datetime, timedelta
+from typing import Any, Dict, List
+
+from azure.eventhub import EventData, EventDataBatch, EventHubProducerClient
+from azure.eventhub.exceptions import EventHubError
+from purchase_order_item_factory import PurchaseOrderItemFactory
 
 # COMMAND ----------
-
 # Import required classes
 from purchase_order_item_model import PurchaseOrderItem
-from purchase_order_item_factory import PurchaseOrderItemFactory
 
 # COMMAND ----------
 
 class PurchaseOrderItemProducer:
-    """
-    Producer class for sending purchase order items to Azure EventHub.
+    """Producer class for sending purchase order items to Azure EventHub.
 
     This class manages the complete lifecycle of producing purchase order events:
     - Connection management
@@ -48,8 +46,7 @@ class PurchaseOrderItemProducer:
                  send_interval: float = 2.0,
                  max_retries: int = 3,
                  log_level: str = "INFO"):
-        """
-        Initialize the Purchase Order Item Producer.
+        """Initialize the Purchase Order Item Producer.
 
         Args:
             connection_string: EventHub connection string
@@ -108,8 +105,7 @@ class PurchaseOrderItemProducer:
             raise
 
     def _create_event_batch(self, orders: List[PurchaseOrderItem]) -> EventDataBatch:
-        """
-        Create an EventDataBatch from purchase orders.
+        """Create an EventDataBatch from purchase orders.
 
         Args:
             orders: List of purchase orders
@@ -157,8 +153,7 @@ class PurchaseOrderItemProducer:
         return batch
 
     def _send_batch_with_retry(self, batch: EventDataBatch) -> bool:
-        """
-        Send a batch with retry logic.
+        """Send a batch with retry logic.
 
         Args:
             batch: EventDataBatch to send
@@ -186,8 +181,7 @@ class PurchaseOrderItemProducer:
         return False
 
     def produce_continuous(self, duration_minutes: int = 60, scenario: str = "normal") -> Dict[str, Any]:
-        """
-        Continuously produce purchase order events for a specified duration.
+        """Continuously produce purchase order events for a specified duration.
 
         Args:
             duration_minutes: How long to produce events
@@ -238,8 +232,7 @@ class PurchaseOrderItemProducer:
         return self.get_statistics()
 
     def produce_batch_async(self, total_events: int = 1000) -> Dict[str, Any]:
-        """
-        Produce a specific number of events using async batch sending.
+        """Produce a specific number of events using async batch sending.
 
         Args:
             total_events: Total number of events to send
@@ -278,8 +271,7 @@ class PurchaseOrderItemProducer:
         return self.get_statistics()
 
     def produce_scenario_test(self) -> Dict[str, Any]:
-        """
-        Produce test batches with different scenarios for validation.
+        """Produce test batches with different scenarios for validation.
 
         Returns:
             Dictionary with test results
@@ -338,8 +330,7 @@ class PurchaseOrderItemProducer:
             self.logger.error(f"Error closing producer client: {e}")
 
     def get_statistics(self) -> Dict[str, Any]:
-        """
-        Get production statistics.
+        """Get production statistics.
 
         Returns:
             Dictionary with comprehensive statistics
@@ -368,8 +359,7 @@ class PurchaseOrderItemProducer:
         }
 
     def test_connection(self) -> bool:
-        """
-        Test the EventHub connection.
+        """Test the EventHub connection.
 
         Returns:
             True if connection successful, False otherwise
@@ -391,8 +381,7 @@ class PurchaseOrderItemProducer:
 # COMMAND ----------
 
 def create_producer_from_widgets(dbutils, spark) -> PurchaseOrderItemProducer:
-    """
-    Create a producer instance from Databricks widget values.
+    """Create a producer instance from Databricks widget values.
 
     Args:
         dbutils: Databricks utilities

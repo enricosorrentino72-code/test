@@ -1,5 +1,4 @@
-"""
-Purchase Order DQX Monitor Module
+"""Purchase Order DQX Monitor Module
 
 This module provides comprehensive monitoring and dashboard capabilities for the
 Purchase Order DQX pipeline. It tracks quality metrics, streaming performance,
@@ -11,9 +10,9 @@ Date: 2024
 
 import logging
 import time
-from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
+from typing import Any, Dict, Optional
 
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
@@ -33,16 +32,14 @@ class MonitorConfig:
 
 
 class PurchaseOrderDQXMonitor:
-    """
-    Monitor DQX pipeline and provide comprehensive quality metrics dashboard.
+    """Monitor DQX pipeline and provide comprehensive quality metrics dashboard.
 
     This class provides real-time monitoring of the Purchase Order DQX pipeline,
     including streaming performance, quality metrics, and failure analysis.
     """
 
     def __init__(self, spark: SparkSession, silver_table: str, config: Optional[MonitorConfig] = None):
-        """
-        Initialize the DQX monitor.
+        """Initialize the DQX monitor.
 
         Args:
             spark: Active Spark session
@@ -53,12 +50,11 @@ class PurchaseOrderDQXMonitor:
         self.silver_table = silver_table
         self.config = config or MonitorConfig()
 
-        logger.info(f"✅ PurchaseOrderDQXMonitor initialized")
+        logger.info("✅ PurchaseOrderDQXMonitor initialized")
         logger.info(f"   Monitoring table: {silver_table}")
 
     def display_quality_dashboard(self, streaming_query: Optional[StreamingQuery] = None):
-        """
-        Display comprehensive quality dashboard with real-time metrics.
+        """Display comprehensive quality dashboard with real-time metrics.
 
         Args:
             streaming_query: Optional streaming query for pipeline status
@@ -84,7 +80,6 @@ class PurchaseOrderDQXMonitor:
 
     def _get_current_metrics(self) -> Dict[str, Any]:
         """Get current quality and performance metrics"""
-
         try:
             # Check if table exists and has data
             total_records = self.spark.table(self.silver_table).count()
@@ -146,7 +141,6 @@ class PurchaseOrderDQXMonitor:
 
     def _get_streaming_status(self, streaming_query: Optional[StreamingQuery]) -> Dict[str, Any]:
         """Get streaming pipeline status information"""
-
         if streaming_query:
             try:
                 progress = streaming_query.lastProgress
@@ -167,7 +161,6 @@ class PurchaseOrderDQXMonitor:
 
     def _analyze_failed_rules(self) -> Dict[str, Any]:
         """Analyze which rules are failing most frequently"""
-
         try:
             failed_records = self.spark.table(self.silver_table) \
                 .filter("flag_check = 'FAIL'") \
@@ -201,7 +194,6 @@ class PurchaseOrderDQXMonitor:
 
     def _generate_dashboard_html(self, metrics: Dict[str, Any], streaming_status: Dict[str, Any]) -> str:
         """Generate HTML dashboard for Databricks display"""
-
         if not metrics.get('has_data', False):
             return self._generate_no_data_html()
 
@@ -307,7 +299,6 @@ class PurchaseOrderDQXMonitor:
 
     def _generate_no_data_html(self) -> str:
         """Generate HTML for when no data is available"""
-
         return f"""
         <div style="border: 2px solid #FF9800; border-radius: 15px; padding: 20px; background: #fff3e0; text-align: center;">
             <h2 style="color: #FF9800;">📭 Purchase Order DQX Pipeline</h2>
@@ -318,7 +309,6 @@ class PurchaseOrderDQXMonitor:
 
     def _display_console_dashboard(self, metrics: Dict[str, Any], streaming_status: Dict[str, Any]):
         """Display dashboard in console format"""
-
         print("=" * 60)
         print("🔍 PURCHASE ORDER DQX PIPELINE DASHBOARD")
         print("=" * 60)
@@ -328,19 +318,19 @@ class PurchaseOrderDQXMonitor:
             print(f"   Table: {self.silver_table}")
             return
 
-        print(f"📊 OVERVIEW:")
+        print("📊 OVERVIEW:")
         print(f"   Total Records: {metrics['total_records']:,}")
         print(f"   Table: {self.silver_table}")
         print(f"   Quality Rate: {metrics['quality_rate']:.2%}")
         print(f"   Avg Quality Score: {metrics['avg_quality_score']:.3f}")
 
-        print(f"\n📈 QUALITY DISTRIBUTION:")
+        print("\n📈 QUALITY DISTRIBUTION:")
         quality_dist = metrics['quality_distribution']
         print(f"   ✅ PASS: {quality_dist.get('PASS', 0):,} records")
         print(f"   ❌ FAIL: {quality_dist.get('FAIL', 0):,} records")
         print(f"   ⚠️ WARNING: {quality_dist.get('WARNING', 0):,} records")
 
-        print(f"\n🚀 STREAMING STATUS:")
+        print("\n🚀 STREAMING STATUS:")
         is_active = streaming_status.get('is_active', False)
         print(f"   Status: {'🟢 Active' if is_active else '🔴 Stopped'}")
         print(f"   Batch ID: {streaming_status.get('batch_id', 'N/A')}")
@@ -354,7 +344,6 @@ class PurchaseOrderDQXMonitor:
 
     def _display_console_dashboard_fallback(self):
         """Fallback console display when metrics can't be retrieved"""
-
         print("=" * 60)
         print("🔍 PURCHASE ORDER DQX PIPELINE DASHBOARD")
         print("=" * 60)
@@ -364,8 +353,7 @@ class PurchaseOrderDQXMonitor:
         print("=" * 60)
 
     def analyze_quality_trends(self, days: int = 7):
-        """
-        Analyze quality trends over specified number of days.
+        """Analyze quality trends over specified number of days.
 
         Args:
             days: Number of days to analyze
@@ -398,7 +386,7 @@ class PurchaseOrderDQXMonitor:
                     max("quality_rate").alias("max_quality_rate")
                 ).collect()[0]
 
-                print(f"\n📈 TREND SUMMARY:")
+                print("\n📈 TREND SUMMARY:")
                 print(f"   Days with Data: {total_days_with_data}")
                 print(f"   Total Records: {overall_stats['total_records']:,}")
                 print(f"   Average Quality Rate: {overall_stats['avg_quality_rate']:.2f}%")
@@ -410,8 +398,7 @@ class PurchaseOrderDQXMonitor:
             logger.error(f"❌ Error analyzing quality trends: {e}")
 
     def analyze_quality_failures(self, limit: int = 10):
-        """
-        Analyze quality failures in detail.
+        """Analyze quality failures in detail.
 
         Args:
             limit: Number of failure examples to show
@@ -438,7 +425,7 @@ class PurchaseOrderDQXMonitor:
                     .show(limit, truncate=False)
 
                 # Show sample failed records
-                print(f"\n📋 Sample Failed Records:")
+                print("\n📋 Sample Failed Records:")
                 self.spark.table(self.silver_table) \
                     .filter("flag_check = 'FAIL'") \
                     .select("order_id", "product_id", "customer_id", "description_failure",
@@ -453,8 +440,7 @@ class PurchaseOrderDQXMonitor:
             logger.error(f"❌ Error analyzing quality failures: {e}")
 
     def track_dqx_lineage(self, limit: int = 10):
-        """
-        Track DQX lineage information.
+        """Track DQX lineage information.
 
         Args:
             limit: Number of lineage records to show
@@ -469,7 +455,7 @@ class PurchaseOrderDQXMonitor:
                 print(f"📊 Total Records with Lineage: {total_records:,}")
 
                 # Show sample lineage records
-                print(f"\n📋 Sample DQX Lineage Records:")
+                print("\n📋 Sample DQX Lineage Records:")
                 self.spark.table(self.silver_table) \
                     .select("dqx_lineage_id", "order_id", "flag_check",
                            "dqx_quality_score", "dqx_validation_timestamp") \
@@ -477,7 +463,7 @@ class PurchaseOrderDQXMonitor:
                     .show(limit, truncate=False)
 
                 # Lineage by criticality level
-                print(f"\n📊 Lineage by Criticality Level:")
+                print("\n📊 Lineage by Criticality Level:")
                 self.spark.table(self.silver_table) \
                     .groupBy("dqx_criticality_level") \
                     .count() \
@@ -491,8 +477,7 @@ class PurchaseOrderDQXMonitor:
             logger.error(f"❌ Error tracking DQX lineage: {e}")
 
     def monitor_streaming_progress(self, streaming_query: StreamingQuery, duration: int = 300):
-        """
-        Monitor streaming progress for specified duration.
+        """Monitor streaming progress for specified duration.
 
         Args:
             streaming_query: Active streaming query
@@ -545,8 +530,7 @@ class PurchaseOrderDQXMonitor:
             logger.error(f"❌ Monitoring error: {e}")
 
     def get_monitoring_summary(self) -> Dict[str, Any]:
-        """
-        Get a comprehensive monitoring summary.
+        """Get a comprehensive monitoring summary.
 
         Returns:
             Dictionary with monitoring summary

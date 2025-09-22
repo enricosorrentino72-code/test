@@ -13,19 +13,25 @@
 
 # COMMAND ----------
 
+import logging
+from typing import Any, Dict, List
+
 from pyspark.sql import SparkSession
 from pyspark.sql.types import (
-    StructType, StructField, StringType, IntegerType,
-    LongType, TimestampType, DateType, DoubleType
+    DateType,
+    DoubleType,
+    IntegerType,
+    LongType,
+    StringType,
+    StructField,
+    StructType,
+    TimestampType,
 )
-import logging
-from typing import Dict, List, Any, Optional
 
 # COMMAND ----------
 
 class HiveMetastoreManager:
-    """
-    Manager class for Hive Metastore operations for Bronze layer tables.
+    """Manager class for Hive Metastore operations for Bronze layer tables.
 
     This class handles:
     - Table creation and schema management
@@ -41,8 +47,7 @@ class HiveMetastoreManager:
                  table_name: str,
                  bronze_path: str,
                  log_level: str = "INFO"):
-        """
-        Initialize the Hive Metastore Manager.
+        """Initialize the Hive Metastore Manager.
 
         Args:
             spark: Active Spark session
@@ -104,8 +109,7 @@ class HiveMetastoreManager:
         ])
 
     def create_database(self) -> bool:
-        """
-        Create the database if it doesn't exist.
+        """Create the database if it doesn't exist.
 
         Returns:
             True if successful, False otherwise
@@ -129,8 +133,7 @@ class HiveMetastoreManager:
     def create_table(self,
                     partition_columns: List[str] = None,
                     table_properties: Dict[str, str] = None) -> bool:
-        """
-        Create the Bronze layer table with partitioning.
+        """Create the Bronze layer table with partitioning.
 
         Args:
             partition_columns: Columns to partition by
@@ -203,8 +206,7 @@ class HiveMetastoreManager:
             return False
 
     def _spark_to_sql_type(self, spark_type) -> str:
-        """
-        Convert Spark data type to SQL type string.
+        """Convert Spark data type to SQL type string.
 
         Args:
             spark_type: Spark data type
@@ -225,8 +227,7 @@ class HiveMetastoreManager:
         return type_mapping.get(type_name, "STRING")
 
     def table_exists(self) -> bool:
-        """
-        Check if the table exists in the metastore.
+        """Check if the table exists in the metastore.
 
         Returns:
             True if table exists, False otherwise
@@ -238,8 +239,7 @@ class HiveMetastoreManager:
             return False
 
     def repair_table(self) -> Dict[str, Any]:
-        """
-        Repair table partitions (equivalent to MSCK REPAIR TABLE).
+        """Repair table partitions (equivalent to MSCK REPAIR TABLE).
 
         Returns:
             Dictionary with repair results
@@ -273,8 +273,7 @@ class HiveMetastoreManager:
             return {"error": str(e)}
 
     def _get_partition_count(self) -> int:
-        """
-        Get the number of partitions in the table.
+        """Get the number of partitions in the table.
 
         Returns:
             Number of partitions
@@ -286,8 +285,7 @@ class HiveMetastoreManager:
             return 0
 
     def add_partition(self, ingestion_date: str, ingestion_hour: int) -> bool:
-        """
-        Add a specific partition to the table.
+        """Add a specific partition to the table.
 
         Args:
             ingestion_date: Date in YYYY-MM-DD format
@@ -315,8 +313,7 @@ class HiveMetastoreManager:
             return False
 
     def drop_partition(self, ingestion_date: str, ingestion_hour: int) -> bool:
-        """
-        Drop a specific partition from the table.
+        """Drop a specific partition from the table.
 
         Args:
             ingestion_date: Date in YYYY-MM-DD format
@@ -342,8 +339,7 @@ class HiveMetastoreManager:
             return False
 
     def update_table_statistics(self) -> Dict[str, Any]:
-        """
-        Update table statistics for better query performance.
+        """Update table statistics for better query performance.
 
         Returns:
             Dictionary with statistics update results
@@ -375,8 +371,7 @@ class HiveMetastoreManager:
             return {"error": str(e)}
 
     def get_table_statistics(self) -> Dict[str, Any]:
-        """
-        Get comprehensive table statistics.
+        """Get comprehensive table statistics.
 
         Returns:
             Dictionary with table statistics
@@ -478,8 +473,7 @@ class HiveMetastoreManager:
             self.logger.warning(f"Could not add table metadata: {e}")
 
     def grant_table_permissions(self, principal: str, permissions: List[str]) -> bool:
-        """
-        Grant permissions on the table.
+        """Grant permissions on the table.
 
         Args:
             principal: User or group to grant permissions to
@@ -501,8 +495,7 @@ class HiveMetastoreManager:
             return False
 
     def drop_table(self) -> bool:
-        """
-        Drop the table (use with caution).
+        """Drop the table (use with caution).
 
         Returns:
             True if successful, False otherwise
@@ -525,8 +518,7 @@ class HiveMetastoreManager:
 # COMMAND ----------
 
 def create_hive_manager_from_widgets(spark, dbutils) -> HiveMetastoreManager:
-    """
-    Create a Hive Metastore Manager instance from Databricks widget values.
+    """Create a Hive Metastore Manager instance from Databricks widget values.
 
     Args:
         spark: Spark session

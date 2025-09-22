@@ -1,5 +1,4 @@
-"""
-Purchase Order DQX Quality Rules Module
+"""Purchase Order DQX Quality Rules Module
 
 This module defines comprehensive data quality rules for purchase order items
 using the Databricks DQX framework. It implements validation for financial accuracy,
@@ -10,8 +9,8 @@ Date: 2024
 """
 
 import logging
-from typing import List, Optional, Dict, Any
 from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -19,9 +18,9 @@ logger = logging.getLogger(__name__)
 # DQX Framework imports with fallback
 DQX_AVAILABLE = False
 try:
-    from databricks.labs.dqx.engine import DQEngine
-    from databricks.labs.dqx.rule import DQRowRule, DQDatasetRule, DQForEachColRule
     from databricks.labs.dqx import check_funcs
+    from databricks.labs.dqx.engine import DQEngine
+    from databricks.labs.dqx.rule import DQDatasetRule, DQForEachColRule, DQRowRule
     from databricks.sdk import WorkspaceClient
     DQX_AVAILABLE = True
     logger.info("✅ Databricks DQX Framework imported successfully")
@@ -45,16 +44,14 @@ class DQXRuleConfig:
 
 
 class PurchaseOrderDQXRules:
-    """
-    Databricks DQX quality rules for purchase order item validation.
+    """Databricks DQX quality rules for purchase order item validation.
 
     This class defines comprehensive quality rules specific to purchase order data,
     including financial calculations, business logic validation, and data integrity checks.
     """
 
     def __init__(self, config: Optional[DQXRuleConfig] = None):
-        """
-        Initialize DQX quality rules for purchase orders.
+        """Initialize DQX quality rules for purchase orders.
 
         Args:
             config: Optional configuration for rule behavior
@@ -83,7 +80,6 @@ class PurchaseOrderDQXRules:
 
     def _define_purchase_order_quality_rules(self):
         """Define comprehensive DQX quality rules for purchase order data"""
-
         if not DQX_AVAILABLE:
             logger.warning("⚠️ DQX Framework not available - rules will be empty")
             return
@@ -103,7 +99,6 @@ class PurchaseOrderDQXRules:
 
     def _define_critical_rules(self):
         """Define critical validation rules (error level)"""
-
         if not DQX_AVAILABLE or not self.config.enable_financial_rules:
             return
 
@@ -171,7 +166,6 @@ class PurchaseOrderDQXRules:
 
     def _define_high_priority_rules(self):
         """Define high priority validation rules (warn level)"""
-
         if not DQX_AVAILABLE:
             return
 
@@ -243,7 +237,6 @@ class PurchaseOrderDQXRules:
 
     def _define_medium_priority_rules(self):
         """Define medium priority validation rules (warn level)"""
-
         if not DQX_AVAILABLE or not self.config.enable_format_rules:
             return
 
@@ -297,7 +290,6 @@ class PurchaseOrderDQXRules:
 
     def _define_low_priority_rules(self):
         """Define low priority validation rules (warn level)"""
-
         if not DQX_AVAILABLE or not self.config.enable_range_rules:
             return
 
@@ -365,18 +357,16 @@ class PurchaseOrderDQXRules:
 
     def _combine_all_rules(self):
         """Combine all rules from different categories"""
-
         self.dqx_rules = []
         for category, rules in self.rule_categories.items():
             self.dqx_rules.extend(rules)
 
-        logger.info(f"📊 Total DQX rules by category:")
+        logger.info("📊 Total DQX rules by category:")
         for category, rules in self.rule_categories.items():
             logger.info(f"   {category}: {len(rules)} rules")
 
     def get_rules(self) -> List:
-        """
-        Get all defined DQX rules.
+        """Get all defined DQX rules.
 
         Returns:
             List of all DQX quality rules
@@ -384,8 +374,7 @@ class PurchaseOrderDQXRules:
         return self.dqx_rules
 
     def get_rules_by_category(self, category: str) -> List:
-        """
-        Get rules by specific category.
+        """Get rules by specific category.
 
         Args:
             category: Rule category (critical, high, medium, low)
@@ -407,8 +396,7 @@ class PurchaseOrderDQXRules:
         return warning_rules
 
     def add_custom_rule(self, rule, category: str = 'medium'):
-        """
-        Add a custom DQX rule.
+        """Add a custom DQX rule.
 
         Args:
             rule: DQX rule object
@@ -421,8 +409,7 @@ class PurchaseOrderDQXRules:
             logger.info(f"✅ Added custom DQX rule to {category} category")
 
     def get_rule_summary(self) -> Dict[str, Any]:
-        """
-        Get a summary of all defined rules.
+        """Get a summary of all defined rules.
 
         Returns:
             Dictionary containing rule statistics and configuration
@@ -444,8 +431,7 @@ class PurchaseOrderDQXRules:
         }
 
     def validate_rule_configuration(self) -> bool:
-        """
-        Validate that rules are properly configured.
+        """Validate that rules are properly configured.
 
         Returns:
             True if configuration is valid, False otherwise
@@ -464,16 +450,14 @@ class PurchaseOrderDQXRules:
 
 # Fallback implementation for when DQX is not available
 class BasicPurchaseOrderValidation:
-    """
-    Fallback validation when DQX framework is not available.
+    """Fallback validation when DQX framework is not available.
 
     This provides basic validation logic that can be applied using standard PySpark.
     """
 
     @staticmethod
     def get_basic_validation_conditions():
-        """
-        Get basic validation conditions as PySpark expressions.
+        """Get basic validation conditions as PySpark expressions.
 
         Returns:
             Dictionary of validation conditions

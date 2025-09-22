@@ -1,0 +1,574 @@
+================================================================================
+                    COMPREHENSIVE TESTING EXECUTION PLAN
+                Purchase Order Streaming Pipeline Project
+================================================================================
+
+OVERVIEW
+========
+This document outlines a comprehensive testing strategy for the Purchase Order
+Streaming Pipeline project, covering Quality Analysis, Coverage Testing, Unit
+Testing, Integration Testing, and Performance Testing.
+
+TESTING STRATEGY PYRAMID
+========================
+    ▲ E2E Tests (5%)
+   ▲▲ Integration Tests (15%)
+  ▲▲▲ Unit Tests (80%)
+
+Priority: Bottom-up approach focusing on solid unit test foundation.
+
+================================================================================
+PHASE-BASED EXECUTION PLAN
+================================================================================
+
+PHASE 1: ENVIRONMENT SETUP & FOUNDATION (Days 1-2)
+===================================================
+
+1.1 Environment Preparation
+---------------------------
+Commands:
+  # Create virtual environment
+  python -m venv venv
+
+  # Activate environment
+  # Windows:
+  venv\Scripts\activate.bat
+  # Linux/Mac:
+  source venv/bin/activate
+
+1.2 Install Dependencies
+------------------------
+Commands:
+  pip install -r requirements.txt
+  pip install -r requirements-test.txt
+
+1.3 Pre-commit Setup
+--------------------
+Commands:
+  pre-commit install
+
+1.4 Verify Tools Installation
+-----------------------------
+Commands:
+  python -m pytest --version
+  python -m ruff --version
+  python -m bandit --version
+  python -m mypy --version
+
+Expected Results:
+- All tools respond with version numbers
+- Virtual environment activated successfully
+- Pre-commit hooks installed
+
+================================================================================
+
+PHASE 2: STATIC CODE ANALYSIS (Day 1)
+======================================
+
+2.1 Code Quality Assessment
+----------------------------
+Commands:
+  python -m ruff check class utility tests --statistics
+  python -m black class utility tests --check
+  python -m isort class utility tests --check-only
+
+Expected Results:
+- Ruff identifies 738 code quality issues (178 auto-fixable)
+- Black formatting compliance verified
+- Import order compliance verified
+
+2.2 Security Analysis
+----------------------
+Commands:
+  python -m bandit -r class utility -ll
+  python -m safety check
+  python -m pip-audit
+
+Expected Results:
+- Bandit: 36 total issues (3 medium, 33 low severity, 0 high)
+- Safety: Dependency vulnerability report
+- pip-audit: Supply chain security assessment
+
+2.3 Type Checking
+------------------
+Commands:
+  python -m mypy class utility --ignore-missing-imports
+
+Expected Results:
+- Type errors identified and reported
+- Compliance with type hints standards
+
+2.4 Generate Reports
+--------------------
+Commands:
+  # Windows:
+  quality-check.bat
+  # Linux/Mac:
+  make quality-check
+
+Expected Results:
+- JSON reports: ruff-report.json, bandit-report.json, safety-report.json
+- HTML reports: coverage and security visualization
+- Baseline metrics established
+
+================================================================================
+
+PHASE 3: UNIT TESTING (Days 2-3)
+=================================
+
+3.1 Fast Unit Tests (Core Logic)
+---------------------------------
+Commands:
+  pytest tests/unit/ -v --tb=short
+
+Expected Results:
+- All unit tests execute
+- Fast feedback on core functionality
+- Test failures identified with short traceback
+
+3.2 Unit Tests with Coverage
+-----------------------------
+Commands:
+  pytest tests/unit/ --cov=class --cov=utility \
+    --cov-report=html --cov-report=term-missing \
+    --cov-fail-under=80
+
+Expected Results:
+- Minimum 80% code coverage achieved
+- HTML coverage report generated
+- Missing coverage areas identified
+
+3.3 Unit Test Categories
+------------------------
+Commands:
+  # Fast tests only
+  pytest tests/unit/ -m "not slow" -v
+
+  # Data models
+  pytest tests/unit/test_*_model.py -v
+
+  # Factory classes
+  pytest tests/unit/test_*_factory.py -v
+
+  # Business rules
+  pytest tests/unit/test_*_rules.py -v
+
+Test Coverage Targets:
+- test_purchase_order_item_model.py: 26 tests
+- test_purchase_order_item_factory.py: 22 tests
+- test_purchase_order_dqx_rules.py: 21 tests
+- test_purchase_order_dqx_pipeline.py: 10 tests
+- Other unit test files: 8+ tests each
+
+================================================================================
+
+PHASE 4: INTEGRATION TESTING (Days 3-4)
+=========================================
+
+4.1 Component Integration
+--------------------------
+Commands:
+  pytest tests/integration/ -v -m "not cloud"
+
+Expected Results:
+- Component interactions verified
+- Data flow between modules tested
+- Integration points validated
+
+4.2 Database Integration
+------------------------
+Commands:
+  pytest tests/integration/test_hive_metastore_operations.py -v
+
+Expected Results:
+- Hive metastore connectivity verified
+- Table operations tested
+- Metadata management validated
+
+4.3 Framework Integration
+-------------------------
+Commands:
+  pytest tests/integration/test_dqx_framework.py -v
+
+Expected Results:
+- DQX framework integration verified
+- Quality rules execution tested
+- Data validation pipeline confirmed
+
+4.4 End-to-End Pipeline
+-----------------------
+Commands:
+  pytest tests/integration/test_end_to_end_pipeline.py -v
+
+Expected Results:
+- Complete data flow tested
+- Producer → EventHub → Listener → Bronze → Silver validated
+- DQX quality validation confirmed
+
+================================================================================
+
+PHASE 5: CLOUD INTEGRATION TESTING (Day 4)
+============================================
+
+Note: Requires Azure credentials and cloud resources
+
+5.1 Azure Services Integration
+-------------------------------
+Commands:
+  pytest tests/integration/test_azure_cloud_integration.py -v -m cloud
+
+Expected Results:
+- Azure authentication verified
+- Service connectivity confirmed
+- Cloud resource access validated
+
+5.2 EventHub Integration
+------------------------
+Commands:
+  pytest tests/integration/test_eventhub_integration.py -v -m cloud
+
+Expected Results:
+- EventHub producer connectivity
+- Message serialization/deserialization
+- Consumer group functionality
+
+5.3 ADLS Storage Integration
+----------------------------
+Commands:
+  pytest tests/integration/test_adls_storage.py -v -m cloud
+
+Expected Results:
+- ADLS Gen2 connectivity
+- File upload/download operations
+- Partition management
+
+================================================================================
+
+PHASE 6: PERFORMANCE TESTING (Day 5)
+=====================================
+
+6.1 Throughput Benchmarks
+--------------------------
+Commands:
+  pytest tests/performance/test_throughput_benchmarks.py -v --benchmark-only
+
+Expected Results:
+- Processing speed benchmarks
+- Events per second metrics
+- Performance regression detection
+
+6.2 Memory Usage Analysis
+-------------------------
+Commands:
+  pytest tests/performance/test_memory_usage.py -v
+
+Expected Results:
+- Memory consumption patterns
+- Memory leak detection
+- Resource optimization insights
+
+6.3 Concurrent Processing
+-------------------------
+Commands:
+  pytest tests/performance/test_concurrent_processing.py -v
+
+Expected Results:
+- Multi-threading performance
+- Concurrent processing validation
+- Scalability metrics
+
+6.4 DQX Performance
+-------------------
+Commands:
+  pytest tests/performance/test_dqx_performance.py -v
+
+Expected Results:
+- Quality rule execution performance
+- Large dataset processing speed
+- Performance optimization recommendations
+
+================================================================================
+QUALITY GATES & THRESHOLDS
+================================================================================
+
+CRITICAL QUALITY GATES (Must Pass)
+===================================
+1. Code Coverage: ≥ 80%
+   Tool: pytest-cov
+   Command: pytest --cov-fail-under=80
+
+2. Security Issues: 0 High/Critical
+   Tool: Bandit
+   Command: bandit -r class -ll
+
+3. Type Errors: 0
+   Tool: MyPy
+   Command: mypy class utility
+
+4. Unit Tests: 100% Pass
+   Tool: pytest
+   Command: pytest tests/unit/
+
+WARNING THRESHOLDS (Monitor)
+============================
+1. Code Quality: < 500 issues
+   Action: Review and fix priority issues
+
+2. Complexity: > 10 per function
+   Action: Refactor complex functions
+
+3. Performance: > 2s processing
+   Action: Optimize bottlenecks
+
+4. Dependencies: Vulnerabilities found
+   Action: Update packages
+
+================================================================================
+AUTOMATED EXECUTION WORKFLOWS
+================================================================================
+
+DAILY DEVELOPMENT WORKFLOW
+===========================
+File: daily-quality-check.sh
+
+#!/bin/bash
+echo "🚀 Starting Daily Quality Check..."
+
+# 1. Fast quality checks (2-3 minutes)
+echo "📊 Running static analysis..."
+python -m ruff check class utility --fix
+python -m black class utility tests
+python -m mypy class utility
+
+# 2. Fast unit tests (1-2 minutes)
+echo "🧪 Running unit tests..."
+pytest tests/unit/ -x --tb=short
+
+# 3. Security scan (30 seconds)
+echo "🔒 Security check..."
+python -m bandit -r class utility -ll
+
+echo "✅ Daily check complete!"
+
+PRE-COMMIT WORKFLOW (Automatic)
+================================
+Configured in: .pre-commit-config.yaml
+Triggers: git commit
+
+Runs automatically:
+- Ruff linting with auto-fix
+- Black code formatting
+- isort import sorting
+- MyPy type checking
+- Bandit security scan
+- Unit tests (fast subset)
+
+CI/CD PIPELINE WORKFLOW
+=======================
+File: ci-pipeline.sh
+
+#!/bin/bash
+echo "🏗️ CI/CD Pipeline Starting..."
+
+# Stage 1: Static Analysis (parallel)
+python -m ruff check class utility &
+python -m bandit -r class utility &
+python -m safety check &
+wait
+
+# Stage 2: Unit Tests
+pytest tests/unit/ --cov=class --cov-fail-under=80 --junit-xml=test-results.xml
+
+# Stage 3: Integration Tests
+pytest tests/integration/ -m "not cloud"
+
+# Stage 4: Generate Reports
+pytest --cov=class --cov-report=xml --html=pytest-report.html
+
+echo "✅ CI/CD Pipeline Complete!"
+
+================================================================================
+TESTING EXECUTION SCHEDULE
+================================================================================
+
+WEEK 1: FOUNDATION & UNIT TESTING
+==================================
+Day 1: Environment + Static Analysis (4 hours)
+- Success Criteria: All tools working, reports generated
+
+Day 2: Unit Tests - Models, Factory (6 hours)
+- Success Criteria: 80%+ coverage, all tests pass
+
+Day 3: Unit Tests - Pipeline, DQX (6 hours)
+- Success Criteria: Business logic fully tested
+
+WEEK 2: INTEGRATION & PERFORMANCE
+==================================
+Day 4: Integration Tests (6 hours)
+- Success Criteria: Component interactions verified
+
+Day 5: Cloud Integration + Performance (6 hours)
+- Success Criteria: Azure services + benchmarks
+
+CONTINUOUS: MONITORING & MAINTENANCE
+====================================
+Daily: Pre-commit hooks + fast checks (5 minutes)
+Weekly: Full test suite + performance benchmarks (30 minutes)
+Monthly: Security audit + dependency updates (1 hour)
+
+================================================================================
+TESTING CATEGORIES DEEP DIVE
+================================================================================
+
+1. UNIT TESTING STRATEGY (80% of effort)
+=========================================
+
+Priority 1: Core Business Logic
+-------------------------------
+pytest tests/unit/test_purchase_order_item_model.py -v
+pytest tests/unit/test_purchase_order_dqx_rules.py -v
+
+Priority 2: Data Processing
+---------------------------
+pytest tests/unit/test_purchase_order_item_factory.py -v
+pytest tests/unit/test_purchase_order_dqx_pipeline.py -v
+
+Priority 3: Infrastructure
+---------------------------
+pytest tests/unit/test_bronze_layer_handler.py -v
+pytest tests/unit/test_hive_metastore_manager.py -v
+
+2. INTEGRATION TESTING STRATEGY (15% of effort)
+================================================
+
+Component Integration
+---------------------
+pytest tests/integration/test_dqx_framework.py -v
+
+Data Flow Integration
+---------------------
+pytest tests/integration/test_end_to_end_pipeline.py -v
+
+External Service Integration
+----------------------------
+pytest tests/integration/test_eventhub_integration.py -v -m cloud
+
+3. PERFORMANCE TESTING STRATEGY (5% of effort)
+===============================================
+
+Throughput Testing
+------------------
+pytest tests/performance/ --benchmark-min-rounds=5
+
+Memory Profiling
+----------------
+pytest tests/performance/test_memory_usage.py --profile
+
+Load Testing
+------------
+pytest tests/performance/test_concurrent_processing.py -v
+
+================================================================================
+QUALITY METRICS DASHBOARD
+================================================================================
+
+REAL-TIME MONITORING COMMANDS
+==============================
+# Generate comprehensive dashboard
+./generate-reports.bat  # Windows
+make quality-report     # Linux/Mac
+
+# View results
+start reports\coverage\index.html    # Coverage visualization
+start reports\pytest-report.html     # Test results
+start reports\bandit-report.html     # Security issues
+
+KEY PERFORMANCE INDICATORS (KPIs)
+==================================
+- Code Coverage: Target 85% (minimum 80%)
+- Test Success Rate: 100% for unit tests
+- Security Score: 0 high-severity issues
+- Performance: < 2 seconds for data processing
+- Quality Score: < 500 linting issues
+
+REPORT FILE LOCATIONS
+=====================
+project/
+├── reports/                          # Generated reports directory
+│   ├── coverage/                     # HTML coverage reports
+│   │   └── index.html               # Main coverage report
+│   ├── pytest-report.html          # Interactive test results
+│   ├── ruff-report.json            # Linting issues (JSON)
+│   ├── bandit-report.json          # Security scan results
+│   ├── safety-report.json          # Dependency vulnerabilities
+│   ├── mypy-report/                 # Type checking results
+│   └── radon-report.json           # Code complexity analysis
+├── htmlcov/                         # Default pytest coverage
+│   └── index.html                   # Coverage report
+├── coverage.xml                     # CI/CD coverage format
+├── coverage.json                    # Machine-readable coverage
+└── test-results.xml                 # JUnit XML for CI/CD
+
+================================================================================
+GETTING STARTED COMMANDS
+================================================================================
+
+QUICK START (10 minutes)
+=========================
+# 1. Setup environment
+python -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+
+# 2. Run basic quality check
+python -m ruff check class --statistics
+python -m pytest tests/unit/ --tb=short
+
+# 3. Generate first reports
+./quality-check.bat  # Shows current status
+
+FULL VALIDATION (30 minutes)
+=============================
+# Complete test suite
+make ci  # Linux/Mac
+# or run each phase manually per the plan above
+
+TROUBLESHOOTING
+===============
+1. If PySpark errors occur: Install Java 8+ and set JAVA_HOME
+2. If Azure tests fail: Check credentials and cloud connectivity
+3. If coverage is low: Review test coverage reports and add tests
+4. If performance tests fail: Check system resources and optimize
+
+================================================================================
+SUCCESS CRITERIA SUMMARY
+================================================================================
+
+PHASE COMPLETION CRITERIA:
+- Phase 1: Environment setup, all tools installed and working
+- Phase 2: Static analysis reports generated, baseline established
+- Phase 3: Unit tests passing with 80%+ coverage
+- Phase 4: Integration tests validating component interactions
+- Phase 5: Cloud integration verified (if applicable)
+- Phase 6: Performance benchmarks established
+
+OVERALL PROJECT SUCCESS:
+- All quality gates passing
+- Comprehensive test coverage achieved
+- Automated workflows operational
+- Reports and monitoring in place
+- Documentation complete and accurate
+
+END OF TESTING STRATEGY DOCUMENT
+================================================================================
+
+Document Version: 1.0
+Created: September 2025
+Project: Purchase Order Streaming Pipeline
+Framework: Comprehensive Testing Strategy
+
+For questions or updates, refer to:
+- README.md: Environment setup and quick start
+- CODE_QUALITY.md: Static analysis and quality standards
+- TESTING_GUIDE.md: Detailed testing instructions
+
+================================================================================

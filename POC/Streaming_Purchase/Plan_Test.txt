@@ -1,0 +1,332 @@
+                                                                                            │
+│ ╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮ │
+│ │ 🧪 COMPREHENSIVE TESTING STRATEGY - 85+ TESTS                                                                    │ │
+│ │                                                                                                                  │ │
+│ │ Purchase Order Item Streaming Pipeline Test Plan                                                                 │ │
+│ │                                                                                                                  │ │
+│ │ ================================================================================                                 │ │
+│ │                                                                                                                  │ │
+│ │ 📊 Test Categories Overview                                                                                      │ │
+│ │                                                                                                                  │ │
+│ │ ================================================================================                                 │ │
+│ │                                                                                                                  │ │
+│ │ Unit Tests (52 tests)                                                                                            │ │
+│ │                                                                                                                  │ │
+│ │ - Data Model Tests (8 tests): PurchaseOrderItem validation and business logic                                    │ │
+│ │ - Factory Tests (7 tests): Data generation and quality scenarios                                                 │ │
+│ │ - DQX Rules Tests (12 tests): Quality validation rules and scoring                                               │ │
+│ │ - DQX Pipeline Tests (10 tests): Transformation logic and validation                                             │ │
+│ │ - Silver Manager Tests (8 tests): Table management and schema operations                                         │ │
+│ │ - Monitor Tests (7 tests): Dashboard and analytics functionality                                                 │ │
+│ │                                                                                                                  │ │
+│ │ Integration Tests (18 tests)                                                                                     │ │
+│ │                                                                                                                  │ │
+│ │ - EventHub Integration (4 tests): Producer/Listener connectivity                                                 │ │
+│ │ - End-to-End Pipeline (5 tests): Bronze to Silver flow with DQX                                                  │ │
+│ │ - Hive Metastore (4 tests): Database and table operations                                                        │ │
+│ │ - ADLS Gen2 (3 tests): Storage operations and partitioning                                                       │ │
+│ │ - DQX Framework (2 tests): Databricks DQX integration                                                            │ │
+│ │                                                                                                                  │ │
+│ │ Performance Tests (15 tests)                                                                                     │ │
+│ │                                                                                                                  │ │
+│ │ - Throughput (5 tests): Purchase order processing benchmarks                                                     │ │
+│ │ - Memory Usage (4 tests): Resource consumption monitoring                                                        │ │
+│ │ - DQX Processing (3 tests): Quality validation performance                                                       │ │
+│ │ - Concurrent Processing (3 tests): Multi-stream handling                                                         │ │
+│ │                                                                                                                  │ │
+│ │ Total Tests: 85 comprehensive tests                                                                              │ │
+│ │                                                                                                                  │ │
+│ │ ================================================================================                                 │ │
+│ │                                                                                                                  │ │
+│ │ 📁 Test File Structure                                                                                           │ │
+│ │                                                                                                                  │ │
+│ │ ================================================================================                                 │ │
+│ │                                                                                                                  │ │
+│ │ tests/                                                                                                           │ │
+│ │ ├── unit/                                    # Unit tests (52 tests)                                             │ │
+│ │ │   ├── test_purchase_order_item_model.py   # 8 tests - Data model validation                                    │ │
+│ │ │   ├── test_purchase_order_item_factory.py # 7 tests - Data generation                                          │ │
+│ │ │   ├── test_purchase_order_dqx_rules.py    # 12 tests - Quality rules                                           │ │
+│ │ │   ├── test_purchase_order_dqx_pipeline.py # 10 tests - Pipeline logic                                          │ │
+│ │ │   ├── test_purchase_order_silver_manager.py # 8 tests - Table management                                       │ │
+│ │ │   ├── test_purchase_order_dqx_monitor.py  # 7 tests - Monitoring                                               │ │
+│ │ │   ├── test_bronze_layer_handler.py        # (existing)                                                         │ │
+│ │ │   └── test_hive_metastore_manager.py      # (existing)                                                         │ │
+│ │ ├── integration/                             # Integration tests (18 tests)                                      │ │
+│ │ │   ├── test_eventhub_integration.py        # 4 tests - EventHub connectivity                                    │ │
+│ │ │   ├── test_end_to_end_pipeline.py         # 5 tests - Complete flow                                            │ │
+│ │ │   ├── test_hive_operations.py             # 4 tests - Database operations                                      │ │
+│ │ │   ├── test_adls_storage.py                # 3 tests - Storage operations                                       │ │
+│ │ │   └── test_dqx_framework.py               # 2 tests - DQX integration                                          │ │
+│ │ ├── performance/                             # Performance tests (15 tests)                                      │ │
+│ │ │   ├── test_throughput_benchmarks.py       # 5 tests - Processing speed                                         │ │
+│ │ │   ├── test_memory_usage.py                # 4 tests - Resource monitoring                                      │ │
+│ │ │   ├── test_dqx_performance.py             # 3 tests - Quality validation speed                                 │ │
+│ │ │   └── test_concurrent_processing.py       # 3 tests - Multi-stream handling                                    │ │
+│ │ ├── cloud/                                   # Cloud-specific tests                                              │ │
+│ │ │   ├── test_azure_eventhub_cloud.py        # Cloud EventHub integration                                         │ │
+│ │ │   └── test_databricks_dqx_cloud.py        # Cloud DQX integration                                              │ │
+│ │ ├── fixtures/                                # Test data and utilities                                           │ │
+│ │ │   ├── sample_purchase_orders.json         # Test data samples                                                  │ │
+│ │ │   ├── dqx_test_scenarios.json             # Quality test scenarios                                             │ │
+│ │ │   └── test_schemas.py                      # Schema definitions                                                │ │
+│ │ ├── conftest.py                              # Pytest configuration and fixtures                                 │ │
+│ │ ├── pytest.ini                              # Test runner configuration                                          │ │
+│ │ ├── requirements-test.txt                    # Test dependencies                                                 │ │
+│ │ ├── README.md                                # Testing documentation                                             │ │
+│ │ └── TESTING_SOLUTION.md                     # Testing approach guide                                             │ │
+│ │                                                                                                                  │ │
+│ │ ================================================================================                                 │ │
+│ │                                                                                                                  │ │
+│ │ 🎯 Detailed Test Specifications                                                                                  │ │
+│ │                                                                                                                  │ │
+│ │ ================================================================================                                 │ │
+│ │                                                                                                                  │ │
+│ │ Unit Tests (52 tests)                                                                                            │ │
+│ │                                                                                                                  │ │
+│ │ 1. test_purchase_order_item_model.py (8 tests)                                                                   │ │
+│ │                                                                                                                  │ │
+│ │ - test_purchase_order_creation_valid_data()                                                                      │ │
+│ │ - test_financial_validation_calculations()                                                                       │ │
+│ │ - test_status_combination_validation()                                                                           │ │
+│ │ - test_to_dict_serialization()                                                                                   │ │
+│ │ - test_from_dict_deserialization()                                                                               │ │
+│ │ - test_json_conversion_roundtrip()                                                                               │ │
+│ │ - test_fiscal_quarter_calculation()                                                                              │ │
+│ │ - test_validation_error_handling()                                                                               │ │
+│ │                                                                                                                  │ │
+│ │ 2. test_purchase_order_item_factory.py (7 tests)                                                                 │ │
+│ │                                                                                                                  │ │
+│ │ - test_generate_single_item_normal_scenario()                                                                    │ │
+│ │ - test_generate_batch_with_quality_issues()                                                                      │ │
+│ │ - test_seasonal_batch_generation()                                                                               │ │
+│ │ - test_financial_calculation_accuracy()                                                                          │ │
+│ │ - test_quality_issue_injection_rate()                                                                            │ │
+│ │ - test_product_catalog_selection()                                                                               │ │
+│ │ - test_batch_statistics_calculation()                                                                            │ │
+│ │                                                                                                                  │ │
+│ │ 3. test_purchase_order_dqx_rules.py (12 tests)                                                                   │ │
+│ │                                                                                                                  │ │
+│ │ - test_critical_financial_accuracy_rules()                                                                       │ │
+│ │ - test_positive_values_validation()                                                                              │ │
+│ │ - test_required_fields_validation()                                                                              │ │
+│ │ - test_tax_calculation_validation()                                                                              │ │
+│ │ - test_status_validation_rules()                                                                                 │ │
+│ │ - test_business_logic_consistency()                                                                              │ │
+│ │ - test_format_validation_patterns()                                                                              │ │
+│ │ - test_range_validation_limits()                                                                                 │ │
+│ │ - test_rule_categories_organization()                                                                            │ │
+│ │ - test_custom_rule_addition()                                                                                    │ │
+│ │ - test_basic_validation_fallback()                                                                               │ │
+│ │ - test_rule_configuration_validation()                                                                           │ │
+│ │                                                                                                                  │ │
+│ │ 4. test_purchase_order_dqx_pipeline.py (10 tests)                                                                │ │
+│ │                                                                                                                  │ │
+│ │ - test_bronze_to_silver_transformation()                                                                         │ │
+│ │ - test_json_payload_parsing()                                                                                    │ │
+│ │ - test_dqx_quality_validation_application()                                                                      │ │
+│ │ - test_single_table_quality_flags()                                                                              │ │
+│ │ - test_silver_processing_metadata()                                                                              │ │
+│ │ - test_missing_values_handling()                                                                                 │ │
+│ │ - test_streaming_configuration()                                                                                 │ │
+│ │ - test_trigger_configuration()                                                                                   │ │
+│ │ - test_pipeline_status_monitoring()                                                                              │ │
+│ │ - test_error_handling_fallback()                                                                                 │ │
+│ │                                                                                                                  │ │
+│ │ 5. test_purchase_order_silver_manager.py (8 tests)                                                               │ │
+│ │                                                                                                                  │ │
+│ │ - test_database_creation()                                                                                       │ │
+│ │ - test_enhanced_silver_table_creation()                                                                          │ │
+│ │ - test_schema_definition_validation()                                                                            │ │
+│ │ - test_table_statistics_collection()                                                                             │ │
+│ │ - test_quality_failures_analysis()                                                                               │ │
+│ │ - test_table_optimization()                                                                                      │ │
+│ │ - test_adls_path_configuration()                                                                                 │ │
+│ │ - test_table_metadata_management()                                                                               │ │
+│ │                                                                                                                  │ │
+│ │ 6. test_purchase_order_dqx_monitor.py (7 tests)                                                                  │ │
+│ │                                                                                                                  │ │
+│ │ - test_quality_dashboard_generation()                                                                            │ │
+│ │ - test_quality_metrics_calculation()                                                                             │ │
+│ │ - test_failure_analysis_reporting()                                                                              │ │
+│ │ - test_quality_trends_analysis()                                                                                 │ │
+│ │ - test_dqx_lineage_tracking()                                                                                    │ │
+│ │ - test_monitoring_summary_generation()                                                                           │ │
+│ │ - test_streaming_status_monitoring()                                                                             │ │
+│ │                                                                                                                  │ │
+│ │ Integration Tests (18 tests)                                                                                     │ │
+│ │                                                                                                                  │ │
+│ │ 1. test_eventhub_integration.py (4 tests)                                                                        │ │
+│ │                                                                                                                  │ │
+│ │ - test_producer_to_eventhub_connectivity()                                                                       │ │
+│ │ - test_listener_from_eventhub_streaming()                                                                        │ │
+│ │ - test_purchase_order_message_flow()                                                                             │ │
+│ │ - test_eventhub_error_handling()                                                                                 │ │
+│ │                                                                                                                  │ │
+│ │ 2. test_end_to_end_pipeline.py (5 tests)                                                                         │ │
+│ │                                                                                                                  │ │
+│ │ - test_complete_producer_to_silver_flow()                                                                        │ │
+│ │ - test_dqx_quality_validation_end_to_end()                                                                       │ │
+│ │ - test_checkpoint_recovery_mechanism()                                                                           │ │
+│ │ - test_pipeline_failure_recovery()                                                                               │ │
+│ │ - test_data_quality_monitoring_flow()                                                                            │ │
+│ │                                                                                                                  │ │
+│ │ 3. test_hive_operations.py (4 tests)                                                                             │ │
+│ │                                                                                                                  │ │
+│ │ - test_database_table_creation_flow()                                                                            │ │
+│ │ - test_metadata_registration()                                                                                   │ │
+│ │ - test_partition_management()                                                                                    │ │
+│ │ - test_table_statistics_integration()                                                                            │ │
+│ │                                                                                                                  │ │
+│ │ 4. test_adls_storage.py (3 tests)                                                                                │ │
+│ │                                                                                                                  │ │
+│ │ - test_bronze_layer_storage_operations()                                                                         │ │
+│ │ - test_silver_layer_storage_integration()                                                                        │ │
+│ │ - test_partition_path_management()                                                                               │ │
+│ │                                                                                                                  │ │
+│ │ 5. test_dqx_framework.py (2 tests)                                                                               │ │
+│ │                                                                                                                  │ │
+│ │ - test_databricks_dqx_integration()                                                                              │ │
+│ │ - test_dqx_fallback_mechanism()                                                                                  │ │
+│ │                                                                                                                  │ │
+│ │ Performance Tests (15 tests)                                                                                     │ │
+│ │                                                                                                                  │ │
+│ │ 1. test_throughput_benchmarks.py (5 tests)                                                                       │ │
+│ │                                                                                                                  │ │
+│ │ - test_purchase_order_processing_throughput()                                                                    │ │
+│ │ - test_dqx_validation_performance()                                                                              │ │
+│ │ - test_silver_transformation_speed()                                                                             │ │
+│ │ - test_concurrent_stream_performance()                                                                           │ │
+│ │ - test_batch_processing_optimization()                                                                           │ │
+│ │                                                                                                                  │ │
+│ │ 2. test_memory_usage.py (4 tests)                                                                                │ │
+│ │                                                                                                                  │ │
+│ │ - test_pipeline_memory_consumption()                                                                             │ │
+│ │ - test_dqx_rules_memory_overhead()                                                                               │ │
+│ │ - test_streaming_memory_stability()                                                                              │ │
+│ │ - test_large_batch_memory_handling()                                                                             │ │
+│ │                                                                                                                  │ │
+│ │ 3. test_dqx_performance.py (3 tests)                                                                             │ │
+│ │                                                                                                                  │ │
+│ │ - test_quality_rules_execution_speed()                                                                           │ │
+│ │ - test_validation_scaling_performance()                                                                          │ │
+│ │ - test_quality_metadata_overhead()                                                                               │ │
+│ │                                                                                                                  │ │
+│ │ 4. test_concurrent_processing.py (3 tests)                                                                       │ │
+│ │                                                                                                                  │ │
+│ │ - test_multi_stream_processing()                                                                                 │ │
+│ │ - test_concurrent_quality_validation()                                                                           │ │
+│ │ - test_parallel_table_operations()                                                                               │ │
+│ │                                                                                                                  │ │
+│ │ ================================================================================                                 │ │
+│ │                                                                                                                  │ │
+│ │ 🔧 Test Configuration & Infrastructure                                                                           │ │
+│ │                                                                                                                  │ │
+│ │ ================================================================================                                 │ │
+│ │                                                                                                                  │ │
+│ │ conftest.py Enhancements                                                                                         │ │
+│ │                                                                                                                  │ │
+│ │ - Spark session with DQX configuration                                                                           │ │
+│ │ - Mock EventHub connections                                                                                      │ │
+│ │ - Test data factories                                                                                            │ │
+│ │ - DQX test fixtures                                                                                              │ │
+│ │ - Performance measurement utilities                                                                              │ │
+│ │                                                                                                                  │ │
+│ │ pytest.ini Configuration                                                                                         │ │
+│ │                                                                                                                  │ │
+│ │ [tool:pytest]                                                                                                    │ │
+│ │ testpaths = tests                                                                                                │ │
+│ │ python_files = test_*.py                                                                                         │ │
+│ │ python_classes = Test*                                                                                           │ │
+│ │ python_functions = test_*                                                                                        │ │
+│ │ markers =                                                                                                        │ │
+│ │     unit: Unit tests                                                                                             │ │
+│ │     integration: Integration tests                                                                               │ │
+│ │     performance: Performance tests                                                                               │ │
+│ │     cloud: Cloud-specific tests                                                                                  │ │
+│ │     dqx: DQX framework tests                                                                                     │ │
+│ │     slow: Slow running tests                                                                                     │ │
+│ │ addopts =                                                                                                        │ │
+│ │     --verbose                                                                                                    │ │
+│ │     --tb=short                                                                                                   │ │
+│ │     --strict-markers                                                                                             │ │
+│ │     --cov=class                                                                                                  │ │
+│ │     --cov-report=html                                                                                            │ │
+│ │     --cov-report=term-missing                                                                                    │ │
+│ │                                                                                                                  │ │
+│ │ requirements-test.txt                                                                                            │ │
+│ │                                                                                                                  │ │
+│ │ pytest>=7.0.0                                                                                                    │ │
+│ │ pytest-cov>=4.0.0                                                                                                │ │
+│ │ pytest-mock>=3.10.0                                                                                              │ │
+│ │ pytest-benchmark>=4.0.0                                                                                          │ │
+│ │ pyspark>=3.4.0                                                                                                   │ │
+│ │ databricks-labs-dqx                                                                                              │ │
+│ │ azure-eventhub>=5.11.0                                                                                           │ │
+│ │ faker>=20.0.0                                                                                                    │ │
+│ │                                                                                                                  │ │
+│ │ ================================================================================                                 │ │
+│ │                                                                                                                  │ │
+│ │ 📋 Test Execution Strategy                                                                                       │ │
+│ │                                                                                                                  │ │
+│ │ ================================================================================                                 │ │
+│ │                                                                                                                  │ │
+│ │ Continuous Integration                                                                                           │ │
+│ │                                                                                                                  │ │
+│ │ 1. Unit Tests: Run on every commit                                                                               │ │
+│ │ 2. Integration Tests: Run on pull requests                                                                       │ │
+│ │ 3. Performance Tests: Run nightly                                                                                │ │
+│ │ 4. Cloud Tests: Run on release candidates                                                                        │ │
+│ │                                                                                                                  │ │
+│ │ Local Development                                                                                                │ │
+│ │                                                                                                                  │ │
+│ │ # Run all unit tests                                                                                             │ │
+│ │ pytest tests/unit/ -m unit                                                                                       │ │
+│ │                                                                                                                  │ │
+│ │ # Run DQX specific tests                                                                                         │ │
+│ │ pytest tests/ -m dqx                                                                                             │ │
+│ │                                                                                                                  │ │
+│ │ # Run performance benchmarks                                                                                     │ │
+│ │ pytest tests/performance/ -m performance --benchmark-only                                                        │ │
+│ │                                                                                                                  │ │
+│ │ # Run with coverage                                                                                              │ │
+│ │ pytest tests/ --cov=class --cov-report=html                                                                      │ │
+│ │                                                                                                                  │ │
+│ │ Quality Gates                                                                                                    │ │
+│ │                                                                                                                  │ │
+│ │ - Unit Test Coverage: > 90%                                                                                      │ │
+│ │ - Integration Test Coverage: > 80%                                                                               │ │
+│ │ - Performance Regression: < 5% degradation                                                                       │ │
+│ │ - DQX Rule Coverage: 100% of quality rules tested                                                                │ │
+│ │                                                                                                                  │ │
+│ │ ================================================================================                                 │ │
+│ │                                                                                                                  │ │
+│ │ 🎯 Success Criteria                                                                                              │ │
+│ │                                                                                                                  │ │
+│ │ ================================================================================                                 │ │
+│ │                                                                                                                  │ │
+│ │ ✅ 85+ comprehensive tests covering all classes and methods✅ 100% DQX rule coverage with quality validation       │ │
+│ │ scenarios✅ End-to-end pipeline validation from EventHub to Silver✅ Performance benchmarks for throughput and     │ │
+│ │ memory usage✅ Cloud integration testing with Azure services✅ Automated CI/CD integration with quality gates✅     │ │
+│ │ Comprehensive test documentation and execution guides                                                            │ │
+│ │                                                                                                                  │ │
+│ │ This testing strategy ensures robust validation of the entire Purchase Order streaming pipeline with particular  │ │
+│ │ focus on the DQX quality framework and class-based architecture.  
+
+I need to cover this requirements 
+Static Code Analysis 
+o	SonarQube/SonarCloud integration
+o	Code coverage minimum thresholds (80%+)
+o	Security vulnerability scanning (SAST)
+o	Dependency vulnerability checks
+o	Code complexity metrics (cyclomatic complexity < 10)
+
+How to can help me on the Static Code Analysis ?
+
+Code Style & Standards 
+o	Linting rules enforcement
+o	Formatting consistency
+o	Naming convention compliance
+o	Documentation completeness
+
+How to can help me on the Code Style & Standards ?

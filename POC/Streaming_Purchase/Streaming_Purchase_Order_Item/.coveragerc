@@ -1,0 +1,186 @@
+# Coverage.py configuration file
+# This file configures code coverage measurement for the Purchase Order Item Streaming Pipeline
+
+[run]
+# Source packages to measure coverage
+source = class,utility
+
+# Files and directories to omit from coverage
+omit =
+    */tests/*
+    */test_*.py
+    */__init__.py
+    */conftest.py
+    */venv/*
+    */.venv/*
+    */virtualenv/*
+    */site-packages/*
+    */dist-packages/*
+    */notebooks/*
+    */.tox/*
+    */setup.py
+
+# Enable branch coverage measurement
+branch = True
+
+# Use parallel mode for multiprocess coverage
+parallel = True
+
+# Data file for storing coverage information
+data_file = .coverage
+
+# Enable coverage for dynamic contexts
+dynamic_context = test_function
+
+[report]
+# Precision for coverage percentages
+precision = 2
+
+# Show lines that weren't executed
+show_missing = True
+
+# Skip files with 100% coverage in report
+skip_covered = False
+
+# Skip empty files
+skip_empty = True
+
+# Minimum coverage threshold (80%)
+fail_under = 80
+
+# Sort report by coverage percentage
+sort = Cover
+
+# Exclude specific lines from coverage
+exclude_lines =
+    # Standard pragma markers
+    pragma: no cover
+
+    # Don't complain about debug code
+    def __repr__
+    def __str__
+
+    # Don't complain if tests don't hit defensive assertion code
+    raise AssertionError
+    raise NotImplementedError
+
+    # Don't complain if non-runnable code isn't run
+    if __name__ == .__main__.:
+    if __name__ == "__main__":
+
+    # Type checking blocks
+    if TYPE_CHECKING:
+    if typing.TYPE_CHECKING:
+
+    # Abstract methods
+    @abstractmethod
+    @abc.abstractmethod
+
+    # Property setters/getters
+    @property
+    @staticmethod
+    @classmethod
+
+    # Defensive programming
+    except ImportError:
+    except ModuleNotFoundError:
+
+    # Platform-specific code
+    if sys.platform
+
+    # Python version specific code
+    if sys.version_info
+
+    # Logging statements
+    logger.debug
+    logging.debug
+
+    # Pass statements
+    pass
+
+    # Ellipsis
+    ...
+
+# Partial branches to exclude
+partial_branches =
+    pragma: no branch
+    if TYPE_CHECKING:
+    if typing.TYPE_CHECKING:
+
+# Ignore errors when trying to read source code
+ignore_errors = False
+
+[html]
+# Directory for HTML coverage reports
+directory = htmlcov
+
+# Title for HTML reports
+title = Purchase Order Item Pipeline Coverage Report
+
+# Include static files in HTML report
+extra_css =
+
+# Show contexts in HTML report
+show_contexts = True
+
+# Skip files with 100% coverage in HTML report
+skip_covered = False
+
+# Skip empty files in HTML report
+skip_empty = True
+
+[xml]
+# Output file for XML coverage report (for CI/CD integration)
+output = coverage.xml
+
+# Include package name in XML report
+package_depth = 2
+
+[json]
+# Output file for JSON coverage report
+output = coverage.json
+
+# Pretty print JSON output
+pretty_print = True
+
+# Show contexts in JSON report
+show_contexts = True
+
+[paths]
+# Define equivalent paths for combining coverage data from different environments
+source =
+    class/
+    */class/
+    */site-packages/class/
+
+tests =
+    tests/
+    */tests/
+
+[tool:pytest]
+# Pytest plugin configuration for coverage
+addopts = --cov=class --cov-report=term-missing --cov-report=html --cov-report=xml
+
+[coverage:run]
+# Additional plugins for coverage measurement
+plugins =
+    # Add any coverage plugins here
+
+# Concurrency support for parallel testing
+concurrency = multiprocessing,thread
+
+# Context for coverage measurement
+context = ${CONTEXT}
+
+[coverage:debug]
+# Debug options for troubleshooting coverage issues
+trace =
+
+[coverage:report]
+# Include only files matching these patterns
+include =
+    class/*.py
+    utility/*.py
+
+# Output format options
+output = -
